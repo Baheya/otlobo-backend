@@ -160,7 +160,7 @@ exports.login = (req, res) => {
                     res.status(200).json({
                         msg: "user logged in successfully",
                         access_token: "Bearer " + token
-                    })
+                    }).redirect('/login')
                 } else {
                     return res.status(400).json({
                         msg: "password is wrong"
