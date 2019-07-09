@@ -1,16 +1,23 @@
-module.exports = (sequelize, DataTypes) => {
-    const Restaurant = sequelize.define("Restaurant", {
-        id: {
-            type: DataTypes.INTEGER,
-            autoIncrement: true,
-            allowNull: false,
-            primaryKey: true
-        },
-        name: DataTypes.STRING,
-        adress: DataTypes.STRING,
-        password: DataTypes.STRING
-    }, {
-    timestamps: true,
-    })
-    return Restaurant;
-}
+const Sequelize = require('sequelize');
+
+const sequelize = require('../util/database');
+
+const Restaurant = sequelize.define(
+  'restaurant',
+  {
+    id: {
+      type: Sequelize.INTEGER,
+      autoIncrement: true,
+      allowNull: false,
+      primaryKey: true
+    },
+    name: Sequelize.STRING,
+    adress: Sequelize.STRING,
+    password: Sequelize.STRING
+  },
+  {
+    timestamps: true
+  }
+);
+
+module.exports = Restaurant;

@@ -1,29 +1,27 @@
-module.exports = (sequelize, DataTypes) => {
-  const User = sequelize.define("User", {
+const Sequelize = require('sequelize');
+
+const sequelize = require('../util/database');
+
+const User = sequelize.define(
+  'user',
+  {
     id: {
-      type: DataTypes.INTEGER,
+      type: Sequelize.INTEGER,
       autoIncrement: true,
       allowNull: false,
       primaryKey: true
     },
-    name: DataTypes.STRING,
+    firstName: Sequelize.STRING,
+    lastName: Sequelize.STRING,
     email: {
-      type: DataTypes.STRING,
+      type: Sequelize.STRING,
       unique: true
     },
-    password: DataTypes.STRING
-  }, {
-      timestamps: true,
-    })
-  User.associate = models => {
-    User.hasMany(models.Order, {
-      as: "orders",
-      foreignKey: "user_id"
-    })
-    User.hasMany(models.Group, {
-      as: "groups",
-      foreignKey: "user_id"
-    })
+    password: Sequelize.STRING
+  },
+  {
+    timestamps: true
   }
-  return User;
-}
+);
+
+module.exports = User;
