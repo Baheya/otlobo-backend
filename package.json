@@ -1,5 +1,5 @@
 {
-  "name": "otlobo",
+  "name": "otlobo-backend",
   "version": "1.0.0",
   "description": "group food ordering",
   "main": "app.js",
@@ -8,7 +8,7 @@
     "start": "nodemon app.js",
     "start-server": "node app.js"
   },
-  "author": "fatma",
+  "author": "fatma, baheya, mahy",
   "license": "ISC",
   "devDependencies": {
     "nodemon": "^1.18.3"
