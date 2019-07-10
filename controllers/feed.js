@@ -2,12 +2,12 @@ const Restaurant = require('../models/restaurant');
 const MenuItem = require('../models/menu-item');
 
 exports.getRestaurants = (req, res, next) => {
-  Restaurant.find()
+  Restaurant.findAll()
     .then(restaurants => {
       console.log(restaurants);
       res.status(200).json({
         message: 'Restaurants fetched successfully.',
-        posts: restaurants
+        restaurants: restaurants
       });
     })
     .catch(err => {
