@@ -11,8 +11,12 @@ const Restaurant = sequelize.define(
       allowNull: false,
       primaryKey: true
     },
+    email: {
+      type: Sequelize.STRING,
+      unique: true
+    },
     name: Sequelize.STRING,
-    adress: Sequelize.STRING,
+    address: Sequelize.STRING,
     password: Sequelize.STRING
   },
   {

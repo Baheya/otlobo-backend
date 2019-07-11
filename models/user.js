@@ -17,7 +17,11 @@ const User = sequelize.define(
       type: Sequelize.STRING,
       unique: true
     },
-    password: Sequelize.STRING
+    password: Sequelize.STRING,
+    admin: {
+       type: Sequelize.BOOLEAN,
+        allowNull: false,
+        defaultValue: false }
   },
   {
     timestamps: true
