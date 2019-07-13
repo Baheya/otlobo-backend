@@ -40,8 +40,7 @@ MenuItem.belongsTo(Restaurant);
 Restaurant.hasMany(MenuItem, { foreignKey: 'restaurantId', as: 'menu_items' });
 
 sequelize
-  .sync({ force: true })
-  // .sync()
+  .sync()
   .then(result => {
     console.log(result);
     app.listen(8080);
