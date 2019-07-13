@@ -14,21 +14,12 @@ router.post('/signup', [
         .normalizeEmail(),
     body('password')
         .trim()
-        .isLength({ min: 5 }),
-    body('name')
-        .trim()
-        .not()
-        .isEmpty(),
-    body('firstName')
-        .trim()
-        .not()
-        .isEmpty(),
-    body('lastName')
-        .trim()
-        .not()
-        .isEmpty()
+        .isLength({ min: 5 })
 ],
  authControllers.postSignup)
+
+
+ 
 router.post('/login', [
     body('email')
         .isEmail()
