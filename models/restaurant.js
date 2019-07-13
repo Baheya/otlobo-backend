@@ -24,7 +24,12 @@ const Restaurant = sequelize.define(
       type: Sequelize.STRING,
       allowNull: false
     },
-    address: Sequelize.STRING
+    address: Sequelize.STRING,
+    selectedArea: {
+      type: Sequelize.STRING,
+      allowNull: false,
+      defaultValue: "all"
+    }
   },
   {
     timestamps: true

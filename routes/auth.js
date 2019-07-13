@@ -10,11 +10,20 @@ router.post('/signup', [
     body('email')
         .isEmail()
         .withMessage('Please enter a valid email.')
+        .trim()
         .normalizeEmail(),
     body('password')
         .trim()
         .isLength({ min: 5 }),
     body('name')
+        .trim()
+        .not()
+        .isEmpty(),
+    body('firstName')
+        .trim()
+        .not()
+        .isEmpty(),
+    body('lastName')
         .trim()
         .not()
         .isEmpty()

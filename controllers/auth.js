@@ -61,6 +61,7 @@ exports.postSignup = (req, res, next) => {
   } else if (userType === "restaurant") {
     const name = req.body.name;
     const address = req.body.address;
+    const selectedArea = req.body.selectedArea;
     Restaurant.findOne({
       where: {
         email: email
@@ -84,6 +85,7 @@ exports.postSignup = (req, res, next) => {
           email: email,
           name: name,
           address: address,
+          selectedArea: selectedArea,
           password: hashPw
         });
       })

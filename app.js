@@ -36,7 +36,8 @@ app.use((error, req, res, next) => {
 });
 
 sequelize
-  .sync()
+  .sync({ force: true })
+  // .sync()
   .then(result => {
     // console.log(result);
     app.listen(3003);
