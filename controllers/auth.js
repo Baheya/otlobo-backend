@@ -1,11 +1,22 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const { validationResult } = require('express-validator/check');
 
 const Restaurant = require("../models/restaurant");
 const User = require("../models/user");
 const { TOKENSECRET } = process.env;
 
 exports.postSignup = (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    // return res.status(422).json({
+    //   msg: `Validation failed ${errors.array()}`
+    // });
+    const error = new Error('Validation failed.');
+    error.statusCode = 422;
+    error.data = errors.array();
+    throw error;
+  }
   const userType = req.query.userType;
   const email = req.body.email;
   const password = req.body.password;
@@ -153,7 +164,10 @@ exports.postLogin = (req, res, next) => {
         res.status(200).json({ token: token, userId: loadedUser.id });
       })
       .catch(err => {
-        console.log(err);
+        if (!err.statusCode) {
+          err.statusCode = 500;
+        }
+        next(err);
       });
   }
 };
