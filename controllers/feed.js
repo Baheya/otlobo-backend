@@ -2,12 +2,12 @@ const Restaurant = require('../models/restaurant');
 const MenuItem = require('../models/menu-item');
 
 exports.getRestaurants = (req, res, next) => {
-  Restaurant.find()
+  Restaurant.findAll()
     .then(restaurants => {
       console.log(restaurants);
       res.status(200).json({
         message: 'Restaurants fetched successfully.',
-        posts: restaurants
+        restaurants: restaurants
       });
     })
     .catch(err => {
@@ -16,10 +16,11 @@ exports.getRestaurants = (req, res, next) => {
 };
 
 exports.getRestaurant = (req, res, next) => {
-  const restaurantId = req.body.restaurantId;
+  const restaurantId = req.params.restaurantId;
+  console.log(restaurantId);
   Restaurant.findAll({
     where: {
-      id: 1
+      id: restaurantId
     },
     include: [
       {
@@ -28,10 +29,8 @@ exports.getRestaurant = (req, res, next) => {
       }
     ]
   })
-    // Restaurant.findByPk(1)
-    //   include: [{ model: MenuItem, where: { restaurantId: 1 } }]
-    // })
     .then(restaurant => {
+      console.log(`Hello I am ${restaurant}`);
       res.status(200).json({
         message: 'Restaurant fetched successfully.',
         restaurant: restaurant

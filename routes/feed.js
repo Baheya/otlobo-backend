@@ -6,6 +6,6 @@ const router = express.Router();
 
 router.get('/restaurants', feedController.getRestaurants);
 
-router.get('/restaurant/1', feedController.getRestaurant);
+router.get('/restaurant/:restaurantId', feedController.getRestaurant);
 
 module.exports = router;
