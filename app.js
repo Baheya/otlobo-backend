@@ -8,6 +8,8 @@ const sequelize = require('./util/database');
 
 const feedRoutes = require('./routes/feed');
 const authRoutes = require('./routes/auth');
+const Restaurant = require('./models/restaurant');
+const MenuItem = require('./models/menu-item');
 
 const app = express();
 
@@ -34,13 +36,15 @@ app.use((error, req, res, next) => {
   const data = error.data;
   res.status(status).json({ message: message, data: data });
 });
+MenuItem.belongsTo(Restaurant);
+Restaurant.hasMany(MenuItem, { foreignKey: 'restaurantId', as: 'menu_items' });
 
 sequelize
   .sync({ force: true })
   // .sync()
   .then(result => {
-    // console.log(result);
-    app.listen(3003);
+    console.log(result);
+    app.listen(8080);
   })
   .catch(err => {
     console.log(err);
