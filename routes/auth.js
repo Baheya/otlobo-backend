@@ -1,6 +1,43 @@
 const express = require("express");
-const router = express.Router();
+const { body } = require("express-validator/check")
+
 const authControllers = require("../controllers/auth");
-router.post("/signup", authControllers.signUp)
-router.post("/login", authControllers.logIn)
+const User = require('../models/user');
+
+const router = express.Router();
+
+router.post('/signup', [
+    body('email')
+        .isEmail()
+        .withMessage('Please enter a valid email.')
+        .trim()
+        .normalizeEmail(),
+    body('password')
+        .trim()
+        .isLength({ min: 5 }),
+    body('name')
+        .trim()
+        .not()
+        .isEmpty(),
+    body('firstName')
+        .trim()
+        .not()
+        .isEmpty(),
+    body('lastName')
+        .trim()
+        .not()
+        .isEmpty()
+],
+ authControllers.postSignup)
+router.post('/login', [
+    body('email')
+        .isEmail()
+        .withMessage('Please enter a valid email.')
+        .normalizeEmail(),
+    body('password')
+        .trim()
+        .isLength({ min: 5 })
+],
+ authControllers.postLogin)
+
 module.exports = router;

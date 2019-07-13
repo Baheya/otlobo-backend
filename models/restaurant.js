@@ -1,9 +1,9 @@
-const Sequelize = require('sequelize');
+const Sequelize = require("sequelize");
 
-const sequelize = require('../util/database');
+const sequelize = require("../util/database");
 
 const Restaurant = sequelize.define(
-  'restaurant',
+  "restaurant",
   {
     id: {
       type: Sequelize.INTEGER,
@@ -11,13 +11,25 @@ const Restaurant = sequelize.define(
       allowNull: false,
       primaryKey: true
     },
-    name: Sequelize.STRING,
-    address: Sequelize.STRING,
+    name: {
+      type: Sequelize.STRING,
+      allowNull: false
+    },
     email: {
       type: Sequelize.STRING,
+      allowNull: false,
       unique: true
     },
-    password: Sequelize.STRING
+    password: {
+      type: Sequelize.STRING,
+      allowNull: false
+    },
+    address: Sequelize.STRING,
+    selectedArea: {
+      type: Sequelize.STRING,
+      allowNull: false,
+      defaultValue: "all"
+    }
   },
   {
     timestamps: true
