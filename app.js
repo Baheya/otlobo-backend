@@ -7,10 +7,10 @@ const express = require('express');
 const sequelize = require('./util/database');
 
 const feedRoutes = require('./routes/feed');
+const Restaurant = require('./models/restaurant');
+const MenuItem = require('./models/menu-item');
 
 const app = express();
-
-app.set('view engine', 'ejs');
 
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
@@ -27,11 +27,14 @@ app.use((req, res, next) => {
 
 app.use(feedRoutes);
 
+MenuItem.belongsTo(Restaurant);
+Restaurant.hasMany(MenuItem, { foreignKey: 'restaurantId', as: 'menu_items' });
+
 sequelize
   .sync()
   .then(result => {
     console.log(result);
-    app.listen(3001);
+    app.listen(8080);
   })
   .catch(err => {
     console.log(err);
