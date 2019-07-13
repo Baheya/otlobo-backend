@@ -17,8 +17,6 @@ router.post('/signup', [
         .isLength({ min: 5 })
 ],
  authControllers.postSignup)
-
-
  
 router.post('/login', [
     body('email')
