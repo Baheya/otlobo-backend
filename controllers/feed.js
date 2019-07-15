@@ -2,17 +2,49 @@ const Restaurant = require('../models/restaurant');
 const MenuItem = require('../models/menu-item');
 
 exports.getRestaurants = (req, res, next) => {
-  Restaurant.findAll()
-    .then(restaurants => {
-      console.log(restaurants);
-      res.status(200).json({
-        message: 'Restaurants fetched successfully.',
-        restaurants: restaurants
-      });
+  if (req.query.sortBy === 'name') {
+    Restaurant.findAll({
+      order: [['name', 'ASC']],
+      limit: 2
     })
-    .catch(err => {
-      console.log(err);
-    });
+      .then(restaurants => {
+        console.log(restaurants);
+        res.status(200).json({
+          message: 'Restaurants fetched successfully.',
+          restaurants: restaurants
+        });
+      })
+      .catch(err => {
+        console.log(err);
+      });
+  } else if (req.query.sortBy === 'newest') {
+    Restaurant.findAll({
+      order: [['createdAt', 'DESC']],
+      limit: 2
+    })
+      .then(restaurants => {
+        console.log(restaurants);
+        res.status(200).json({
+          message: 'Restaurants fetched successfully.',
+          restaurants: restaurants
+        });
+      })
+      .catch(err => {
+        console.log(err);
+      });
+  } else {
+    Restaurant.findAll({ limit: 2 })
+      .then(restaurants => {
+        console.log(restaurants);
+        res.status(200).json({
+          message: 'Restaurants fetched successfully.',
+          restaurants: restaurants
+        });
+      })
+      .catch(err => {
+        console.log(err);
+      });
+  }
 };
 
 exports.getRestaurant = (req, res, next) => {
