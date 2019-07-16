@@ -9,6 +9,9 @@ router.get('/restaurants', feedController.getRestaurants);
 
 router.get('/restaurant/:restaurantId', feedController.getRestaurant);
 
-router.post('/restaurant/:restaurantId', feedController.addOrder);
+router.post(
+  '/restaurant/:restaurantId/:menuItemId',
+  feedController.addMenuItem
+);
 
 module.exports = router;
