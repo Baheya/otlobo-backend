@@ -49,7 +49,6 @@ Group.belongsTo(User);
 Order.belongsTo(User);
 // Order.hasMany(MenuItem, { through: OrderItem });
 MenuItem.belongsToMany(Order, { through: OrderItem });
-
 sequelize
   .sync({ force: false })
   .then(result => {

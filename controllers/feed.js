@@ -1,8 +1,8 @@
 const Restaurant = require('../models/restaurant');
 const MenuItem = require('../models/menu-item');
 const Group = require('../models/group');
-// const Order = require('./models/order');
-// const OrderItem = require('./models/order-item');
+const Order = require('../models/order');
+const OrderItem = require('../models/order-item');
 
 exports.getRestaurants = (req, res, next) => {
   if (req.query.sortBy === 'name') {
@@ -77,15 +77,48 @@ exports.getRestaurant = (req, res, next) => {
     });
 };
 
-exports.addOrder = (req, res, next) => {
+exports.addMenuItem = (req, res, next) => {
   const restaurantId = req.params.restaurantId;
-  Group.findOrCreate({ where: { restaurantId: restaurantId } })
+  const menuItemId = req.params.menuItemId;
+  const userId = req.body.userId;
+  let groupId;
+  let orderId;
+
+  Group.findOrCreate({ where: { restaurantId, userId } })
     .then(group => {
-      console.log(group);
-      // res.status(200).json({
-      //   message: 'Group created successfully.',
-      //   group: group
-      // });
+      groupId = group[0].id;
+      Order.findOrCreate({ where: { groupId, userId } })
+        .then(order => {
+          orderId = order[0].id;
+          OrderItem.findOrCreate({
+            where: { menuItemId, orderId }
+          })
+            .spread((item, created) => {
+              if (created === false) {
+                item
+                  .update({
+                    quantity: item.quantity + 1
+                  })
+                  .then(item => {
+                    res.status(200).json({
+                      message: 'Everything fetched successfully.',
+                      group: group[0],
+                      order: order[0],
+                      item: item
+                    });
+                  });
+              }
+            })
+            .catch(err => {
+              console.log(err);
+            });
+        })
+        .catch(err => {
+          console.log(err);
+        });
+    })
+    .then(result => {
+      console.log(result);
     })
     .catch(err => {
       console.log(err);
