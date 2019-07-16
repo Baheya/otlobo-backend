@@ -1,5 +1,8 @@
 const Restaurant = require('../models/restaurant');
 const MenuItem = require('../models/menu-item');
+const Group = require('../models/group');
+// const Order = require('./models/order');
+// const OrderItem = require('./models/order-item');
 
 exports.getRestaurants = (req, res, next) => {
   if (req.query.sortBy === 'name') {
@@ -49,7 +52,6 @@ exports.getRestaurants = (req, res, next) => {
 
 exports.getRestaurant = (req, res, next) => {
   const restaurantId = req.params.restaurantId;
-  console.log(restaurantId);
   Restaurant.findAll({
     where: {
       id: restaurantId
@@ -58,15 +60,32 @@ exports.getRestaurant = (req, res, next) => {
       {
         model: MenuItem,
         as: 'menu_items'
+      },
+      {
+        model: Group
       }
     ]
   })
     .then(restaurant => {
-      console.log(`Hello I am ${restaurant}`);
       res.status(200).json({
         message: 'Restaurant fetched successfully.',
         restaurant: restaurant
       });
+    })
+    .catch(err => {
+      console.log(err);
+    });
+};
+
+exports.addOrder = (req, res, next) => {
+  const restaurantId = req.params.restaurantId;
+  Group.findOrCreate({ where: { restaurantId: restaurantId } })
+    .then(group => {
+      console.log(group);
+      // res.status(200).json({
+      //   message: 'Group created successfully.',
+      //   group: group
+      // });
     })
     .catch(err => {
       console.log(err);
