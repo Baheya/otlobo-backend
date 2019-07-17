@@ -47,7 +47,7 @@ Group.hasMany(Order);
 Group.belongsTo(Restaurant);
 Group.belongsTo(User);
 Order.belongsTo(User);
-// Order.hasMany(MenuItem, { through: OrderItem });
+Order.belongsToMany(MenuItem, { as: 'menu_items', through: OrderItem });
 MenuItem.belongsToMany(Order, { through: OrderItem });
 sequelize
   .sync({ force: false })
