@@ -10,6 +10,10 @@ const feedRoutes = require('./routes/feed');
 const authRoutes = require('./routes/auth');
 const Restaurant = require('./models/restaurant');
 const MenuItem = require('./models/menu-item');
+const User = require('./models/user');
+const Group = require('./models/group');
+const Order = require('./models/order');
+const OrderItem = require('./models/order-item');
 
 const app = express();
 
@@ -38,9 +42,15 @@ app.use((error, req, res, next) => {
 });
 MenuItem.belongsTo(Restaurant);
 Restaurant.hasMany(MenuItem, { foreignKey: 'restaurantId', as: 'menu_items' });
-
+Restaurant.hasOne(Group);
+Group.hasMany(Order);
+Group.belongsTo(Restaurant);
+Group.belongsTo(User);
+Order.belongsTo(User);
+Order.belongsToMany(MenuItem, { as: 'menu_items', through: OrderItem });
+MenuItem.belongsToMany(Order, { through: OrderItem });
 sequelize
-  .sync()
+  .sync({ force: false })
   .then(result => {
     console.log(result);
     app.listen(8080);

@@ -1,5 +1,8 @@
 const Restaurant = require('../models/restaurant');
 const MenuItem = require('../models/menu-item');
+const Group = require('../models/group');
+const Order = require('../models/order');
+const OrderItem = require('../models/order-item');
 
 exports.getRestaurants = (req, res, next) => {
   if (req.query.sortBy === 'name') {
@@ -49,7 +52,6 @@ exports.getRestaurants = (req, res, next) => {
 
 exports.getRestaurant = (req, res, next) => {
   const restaurantId = req.params.restaurantId;
-  console.log(restaurantId);
   Restaurant.findAll({
     where: {
       id: restaurantId
@@ -58,16 +60,89 @@ exports.getRestaurant = (req, res, next) => {
       {
         model: MenuItem,
         as: 'menu_items'
+      },
+      {
+        model: Group
       }
     ]
   })
     .then(restaurant => {
-      console.log(`Hello I am ${restaurant}`);
       res.status(200).json({
         message: 'Restaurant fetched successfully.',
         restaurant: restaurant
       });
     })
+    .catch(err => {
+      console.log(err);
+    });
+};
+
+exports.addMenuItem = (req, res, next) => {
+  const restaurantId = req.params.restaurantId;
+  const menuItemId = req.params.menuItemId;
+  const userId = req.body.userId;
+  let groupId;
+  let orderId;
+
+  Group.findOrCreate({ where: { restaurantId, userId } })
+    .then(group => {
+      groupId = group[0].id;
+      Order.findOrCreate({ where: { groupId, userId } })
+        .then(order => {
+          orderId = order[0].id;
+          OrderItem.findOrCreate({
+            where: { menuItemId, orderId }
+          })
+            .spread((item, created) => {
+              if (created === false) {
+                item
+                  .update({
+                    quantity: item.quantity + 1
+                  })
+                  .then(item => {
+                    res.status(200).json({
+                      message: 'Everything fetched successfully.',
+                      group: group[0],
+                      order: order[0],
+                      item: item
+                    });
+                  });
+              }
+            })
+            .catch(err => {
+              console.log(err);
+            });
+        })
+        .catch(err => {
+          console.log(err);
+        });
+    })
+    .then(result => {
+      console.log(result);
+    })
+    .catch(err => {
+      console.log(err);
+    });
+};
+
+exports.getOrder = (req, res, next) => {
+  const userId = req.query.userId;
+  const groupId = req.query.groupId;
+  Order.findOne({
+    where: { groupId, userId },
+    include: [
+      {
+        model: MenuItem,
+        as: 'menu_items'
+      }
+    ]
+  })
+    .then(order => {
+        res.status(200).json({
+          message: 'Everything fetched successfully.',
+          order: order
+        });
+      })
     .catch(err => {
       console.log(err);
     });
