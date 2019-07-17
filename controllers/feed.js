@@ -124,3 +124,26 @@ exports.addMenuItem = (req, res, next) => {
       console.log(err);
     });
 };
+
+exports.getOrder = (req, res, next) => {
+  const userId = req.query.userId;
+  const groupId = req.query.groupId;
+  Order.findOne({
+    where: { groupId, userId },
+    include: [
+      {
+        model: MenuItem,
+        as: 'menu_items'
+      }
+    ]
+  })
+    .then(order => {
+        res.status(200).json({
+          message: 'Everything fetched successfully.',
+          order: order
+        });
+      })
+    .catch(err => {
+      console.log(err);
+    });
+};
