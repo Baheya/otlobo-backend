@@ -14,4 +14,6 @@ router.post(
   feedController.addMenuItem
 );
 
+router.get('/restaurant/:restaurantId/:menuItemId', feedController.getOrder);
+
 module.exports = router;
