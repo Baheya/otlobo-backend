@@ -16,4 +16,6 @@ router.post(
 
 router.get('/restaurant/:restaurantId/:menuItemId', feedController.getOrder);
 
+router.get('/activeGroups', feedController.getActiveGroups);
+
 module.exports = router;

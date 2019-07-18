@@ -40,20 +40,31 @@ app.use((error, req, res, next) => {
   const data = error.data;
   res.status(status).json({ message: message, data: data });
 });
-MenuItem.belongsTo(Restaurant);
-Restaurant.hasMany(MenuItem, { foreignKey: 'restaurantId', as: 'menu_items' });
+
+//relations btw restaurant and group
 Restaurant.hasOne(Group);
+Group.belongsTo(Restaurant, { constraints: true, onDelete: 'CASCADE' });
+//relations btw order and group
 Group.hasMany(Order);
-Group.belongsTo(Restaurant);
+Order.belongsTo(Group, { constraints: true, onDelete: 'CASCADE' });
+//relations btw user and group from creation side
 Group.belongsTo(User);
-Order.belongsTo(User);
+User.hasMany(Group);
+//relation btw order and user
+Order.belongsTo(User, { constraints: true, onDelete: 'CASCADE' });
+User.hasMany(Order);
+//relation btw order and menuitems
 Order.belongsToMany(MenuItem, { as: 'menu_items', through: OrderItem });
 MenuItem.belongsToMany(Order, { through: OrderItem });
+//relation btw restaurant and menuitems
+MenuItem.belongsTo(Restaurant, { constraints: true, onDelete: 'CASCADE' });
+Restaurant.hasMany(MenuItem, { foreignKey: 'restaurantId', as: 'menu_items' });
+
 sequelize
   .sync({ force: false })
   .then(result => {
     console.log(result);
-    app.listen(8080);
+    app.listen(8081);
   })
   .catch(err => {
     console.log(err);

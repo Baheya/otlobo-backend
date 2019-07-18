@@ -3,7 +3,8 @@ const MenuItem = require('../models/menu-item');
 const Group = require('../models/group');
 const Order = require('../models/order');
 const OrderItem = require('../models/order-item');
-
+const User = require('../models/user');
+//show all restaurants in the app
 exports.getRestaurants = (req, res, next) => {
   if (req.query.sortBy === 'name') {
     Restaurant.findAll({
@@ -49,7 +50,7 @@ exports.getRestaurants = (req, res, next) => {
       });
   }
 };
-
+// get single restaurant info
 exports.getRestaurant = (req, res, next) => {
   const restaurantId = req.params.restaurantId;
   Restaurant.findAll({
@@ -128,7 +129,7 @@ exports.addMenuItem = (req, res, next) => {
 exports.getOrder = (req, res, next) => {
   const userId = req.query.userId;
   const groupId = req.query.groupId;
-  Order.findOne({
+  Order.find({
     where: { groupId, userId },
     include: [
       {
@@ -147,3 +148,42 @@ exports.getOrder = (req, res, next) => {
       console.log(err);
     });
 };
+// get all active groups and their orders(the users who made those orders) and restaurant
+exports.getActiveGroups = (req,res,next) => {
+  Group.findAll({
+    where: {
+      active: true
+    },
+    include: [
+      {
+        model: Restaurant,
+        as: 'restaurant'
+      },
+      {
+        model: Order,
+        as: 'orders',
+        include: [{
+          model: User,
+          as: 'user'}]
+      }
+    ]
+  })
+    .then(groups => {
+      if (!groups) {
+        const error = new Error('Could not find groups.');
+        error.statusCode = 404;
+        throw error;
+      }
+      console.log(groups)
+      res.status(200).json({
+        message: 'Groups fetched successfully.',
+        groups: groups
+      });
+    })
+    .catch(err => {
+      if (!err.statusCode) {
+        err.statusCode = 500;
+      }
+      next(err);
+    });
+}
