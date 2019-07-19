@@ -2,6 +2,7 @@ const Restaurant = require('../models/restaurant');
 const MenuItem = require('../models/menu-item');
 const Group = require('../models/group');
 const Order = require('../models/order');
+const User = require('../models/user');
 const OrderItem = require('../models/order-item');
 
 exports.getRestaurants = (req, res, next) => {
@@ -147,3 +148,50 @@ exports.getOrder = (req, res, next) => {
       console.log(err);
     });
 };
+
+exports.getGroupDetails = (req, res, next) => {
+  const groupId = req.params.groupId;
+  Group.findAll({
+    where: {
+      id: groupId
+    },
+    include: [
+      {
+        model: Restaurant,
+        as: 'restaurant',
+        attributes: ['name']
+      },
+      {
+        model: Order,
+        as: 'orders',
+        attributes: ['id'],
+        include: [{
+          model: User,
+          attributes: ['id', 'firstName', 'image'],
+          as: 'user'
+        }, {
+            model: MenuItem,
+            as: 'menu_items'
+          }]
+      }
+    ]
+  })
+    .then(group => {
+      if (!group) {
+        const error = new Error('Could not find group.');
+        error.statusCode = 404;
+        throw error;
+      }
+      console.log(group)
+      res.status(200).json({
+        message: 'Group details fetched successfully.',
+        group: group
+      });
+    })
+    .catch(err => {
+      if (!err.statusCode) {
+        err.statusCode = 500;
+      }
+      next(err);
+    });
+}
