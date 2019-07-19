@@ -157,13 +157,16 @@ exports.getActiveGroups = (req,res,next) => {
     include: [
       {
         model: Restaurant,
-        as: 'restaurant'
+        as: 'restaurant',
+        attributes: ['id', 'name']
       },
       {
         model: Order,
         as: 'orders',
+        attributes: ['id'],
         include: [{
           model: User,
+          attributes: ['id', 'firstName', 'image'],
           as: 'user'}]
       }
     ]

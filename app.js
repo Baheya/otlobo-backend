@@ -64,7 +64,7 @@ sequelize
   .sync({ force: false })
   .then(result => {
     console.log(result);
-    app.listen(8081);
+    app.listen(8080);
   })
   .catch(err => {
     console.log(err);
