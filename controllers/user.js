@@ -9,8 +9,7 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 exports.getRestaurants = (req, res, next) => {
   if (req.query.sortBy === 'name') {
     Restaurant.findAll({
-      order: [['name', 'ASC']],
-      limit: 2
+      order: [['name', 'ASC']]
     })
       .then(restaurants => {
         console.log(restaurants);
@@ -24,8 +23,7 @@ exports.getRestaurants = (req, res, next) => {
       });
   } else if (req.query.sortBy === 'newest') {
     Restaurant.findAll({
-      order: [['createdAt', 'DESC']],
-      limit: 2
+      order: [['createdAt', 'DESC']]
     })
       .then(restaurants => {
         console.log(restaurants);
@@ -38,7 +36,7 @@ exports.getRestaurants = (req, res, next) => {
         console.log(err);
       });
   } else {
-    Restaurant.findAll({ limit: 2 })
+    Restaurant.findAll()
       .then(restaurants => {
         console.log(restaurants);
         res.status(200).json({
