@@ -131,8 +131,7 @@ exports.postLogin = (req, res, next) => {
           TOKENSECRET,
           { expiresIn: "1h" }
         );
-
-        res.status(200).json({ token: token, userId: loadedUser.id });
+        res.status(200).json({ token: token, userId: loadedUser.id, userType: "user", user: loadedUser});
       })
       .catch(err => {
         console.log(err);
@@ -163,7 +162,7 @@ exports.postLogin = (req, res, next) => {
           { expiresIn: "1h" }
         );
 
-        res.status(200).json({ token: token, userId: loadedUser.id });
+        res.status(200).json({ token: token, userId: loadedUser.id, userType: "restaurant", restaurant: loadedUser });
       })
       .catch(err => {
         if (!err.statusCode) {
