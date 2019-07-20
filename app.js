@@ -32,8 +32,8 @@ app.use((req, res, next) => {
   next();
 });
 
-// app.use(authRoutes);
-// app.use(userRoutes);
+app.use(authRoutes);
+app.use(userRoutes);
 app.use(restaurantRoutes);
 
 app.use((error, req, res, next) => {
