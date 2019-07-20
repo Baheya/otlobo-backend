@@ -1,5 +1,6 @@
 const Restaurant = require('../models/restaurant');
 const MenuItem = require('../models/menu-item');
+const User = require('../models/user');
 const Group = require('../models/group');
 const Order = require('../models/order');
 const OrderItem = require('../models/order-item');
@@ -150,7 +151,7 @@ exports.getOrder = (req, res, next) => {
             const { price, order_item } = item;
             totalPrice = totalPrice + price * order_item.quantity;
             order.update({
-              totalPrice
+              total: totalPrice
             });
           });
           res.status(200).json({
@@ -169,41 +170,72 @@ exports.getOrder = (req, res, next) => {
     });
 };
 
-const stripeChargeCallback = res => (stripeErr, stripeRes) => {
-  if (stripeErr) {
-    res.status(500).send({ error: stripeErr });
-  } else {
-    res.status(200).send({ success: stripeRes });
-  }
-};
-
 exports.handlePayment = async (req, res, next) => {
   const body = {
     source: req.body.token.id,
     amount: req.body.amount,
-    restaurantId: req.body.restaurantId,
-    userId: req.body.userId,
     currency: 'egp'
   };
-  stripe.charges.create(body, stripeChargeCallback(res));
-  Group.findOne({
-    where: { userId: body.userId, restaurantId: body.restaurantId }
-  }).then(group => {
-    groupId = group.id;
-    Order.findOne({ where: { userId: body.userId, groupId } })
-      .then(order => {
-        order.update({
-          completed: true
+  stripe.charges
+    .create(body)
+    .then(stripeResult => {
+      User.findOne({ where: { id: req.body.userId } }).then(user => {
+        Group.findOne({
+          where: {
+            userId: req.body.userId,
+            restaurantId: req.body.restaurantId
+          }
+        }).then(group => {
+          groupId = group.id;
+          Order.findOne({ where: { userId: req.body.userId, groupId } })
+            .then(order => {
+              if (user.email !== req.body.token.email) {
+                order
+                  .update({
+                    completed: false
+                  })
+                  .then(result => {
+                    res.status(422).json({
+                      message: 'Email incorrect, please try again.',
+                      result,
+                      completed: false
+                    });
+                  })
+                  .catch(err => {
+                    console.log(err);
+                  });
+              } else {
+                order
+                  .update({
+                    completed: true
+                  })
+                  .then(result => {
+                    if (
+                      order.completed === true &&
+                      user.email === req.body.token.email
+                    ) {
+                      res.status(200).json({
+                        message: 'Order placed successfully!',
+                        result,
+                        completed: true
+                      });
+                    } else {
+                      res.status(500).json({
+                        message: 'Payment details incorrect, please try again.',
+                        result,
+                        completed: false
+                      });
+                    }
+                  });
+              }
+            })
+            .catch(err => {
+              console.log(err);
+            });
         });
-      })
-      .then(result => {
-        res.status(200).json({
-          message: 'Order placed successfully!',
-          result
-        });
-      })
-      .catch(err => {
-        console.log(err);
       });
-  });
+    })
+    .catch(err => {
+      console.log(`hello i am stripe catch block ${err}`);
+    });
 };
