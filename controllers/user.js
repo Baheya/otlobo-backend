@@ -4,6 +4,8 @@ const Group = require('../models/group');
 const Order = require('../models/order');
 const OrderItem = require('../models/order-item');
 
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+
 exports.getRestaurants = (req, res, next) => {
   if (req.query.sortBy === 'name') {
     Restaurant.findAll({
@@ -117,9 +119,6 @@ exports.addMenuItem = (req, res, next) => {
           console.log(err);
         });
     })
-    .then(result => {
-      console.log(result);
-    })
     .catch(err => {
       console.log(err);
     });
@@ -127,23 +126,86 @@ exports.addMenuItem = (req, res, next) => {
 
 exports.getOrder = (req, res, next) => {
   const userId = req.query.userId;
-  const groupId = req.query.groupId;
-  Order.findOne({
-    where: { groupId, userId },
+  const restaurantId = req.query.restaurantId;
+  let totalPrice = 0;
+  Group.findOne({
+    where: { userId, restaurantId },
     include: [
       {
-        model: MenuItem,
-        as: 'menu_items'
+        model: Restaurant
       }
     ]
   })
-    .then(order => {
-        res.status(200).json({
-          message: 'Everything fetched successfully.',
-          order: order
-        });
+    .then(group => {
+      let groupId = group.id;
+      Order.findOne({
+        where: { groupId, userId },
+        include: [
+          {
+            model: MenuItem,
+            as: 'menu_items'
+          }
+        ]
       })
+        .then(order => {
+          order.menu_items.map(item => {
+            const { price, order_item } = item;
+            totalPrice = totalPrice + price * order_item.quantity;
+            order.update({
+              totalPrice
+            });
+          });
+          res.status(200).json({
+            message: 'Cart fetched successfully.',
+            order,
+            group,
+            totalPrice
+          });
+        })
+        .catch(err => {
+          console.log(err);
+        });
+    })
     .catch(err => {
       console.log(err);
     });
+};
+
+const stripeChargeCallback = res => (stripeErr, stripeRes) => {
+  if (stripeErr) {
+    res.status(500).send({ error: stripeErr });
+  } else {
+    res.status(200).send({ success: stripeRes });
+  }
+};
+
+exports.handlePayment = async (req, res, next) => {
+  const body = {
+    source: req.body.token.id,
+    amount: req.body.amount,
+    restaurantId: req.body.restaurantId,
+    userId: req.body.userId,
+    currency: 'egp'
+  };
+  stripe.charges.create(body, stripeChargeCallback(res));
+  Group.findOne({
+    where: { userId: body.userId, restaurantId: body.restaurantId }
+  }).then(group => {
+    groupId = group.id;
+    Order.findOne({ where: { userId: body.userId, groupId } })
+      .then(order => {
+        order.update({
+          completed: true
+        });
+      })
+      .then(result => {
+        res.status(200).json({
+          message: 'Order placed successfully!',
+          result
+        });
+      })
+      .catch(err => {
+        console.log(err);
+      });
+  });
 };
