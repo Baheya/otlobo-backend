@@ -6,8 +6,9 @@ const bodyParser = require('body-parser');
 const express = require('express');
 const sequelize = require('./util/database');
 
-const feedRoutes = require('./routes/feed');
+const userRoutes = require('./routes/user');
 const authRoutes = require('./routes/auth');
+const restaurantRoutes = require('./routes/restaurant');
 const Restaurant = require('./models/restaurant');
 const MenuItem = require('./models/menu-item');
 const User = require('./models/user');
@@ -31,8 +32,9 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use(authRoutes);
-app.use(feedRoutes);
+// app.use(authRoutes);
+// app.use(userRoutes);
+app.use(restaurantRoutes);
 
 app.use((error, req, res, next) => {
   console.log(error);
@@ -41,6 +43,7 @@ app.use((error, req, res, next) => {
   const data = error.data;
   res.status(status).json({ message: message, data: data });
 });
+
 MenuItem.belongsTo(Restaurant);
 Restaurant.hasMany(MenuItem, { foreignKey: 'restaurantId', as: 'menu_items' });
 Restaurant.hasOne(Group);
