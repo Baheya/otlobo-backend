@@ -19,6 +19,7 @@ const OrderItem = require('./models/order-item');
 const app = express();
 
 app.use(bodyParser.json());
+app.use(require('body-parser').text());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use((req, res, next) => {
