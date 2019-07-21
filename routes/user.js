@@ -16,11 +16,16 @@ router.post(
 
 router.get('/restaurant/:restaurantId/:menuItemId', userControllers.getOrder);
 
-router.get('/restaurant/:restaurantId/checkout', userControllers.getOrder);
+router.get(
+  '/restaurant/:restaurantId/checkout/success',
+  userControllers.getOrders
+);
 
 router.post(
   '/restaurant/:restaurantId/checkout/charge',
   userControllers.handlePayment
 );
+
+router.get('/restaurant/:restaurantId/checkout', userControllers.getOrder);
 
 module.exports = router;
