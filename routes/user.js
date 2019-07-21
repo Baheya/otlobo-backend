@@ -21,11 +21,15 @@ router.get(
   userControllers.getOrders
 );
 
+router.get('/activeGroups', userControllers.getActiveGroups);
+
 router.post(
   '/restaurant/:restaurantId/checkout/charge',
   userControllers.handlePayment
 );
 
 router.get('/restaurant/:restaurantId/checkout', userControllers.getOrder);
+
+router.get('/activeGroups/:groupId', userControllers.getGroupDetails);
 
 module.exports = router;
