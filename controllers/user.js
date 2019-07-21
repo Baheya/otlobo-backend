@@ -189,7 +189,7 @@ exports.getActiveGroups = (req,res,next) => {
         attributes: ['id'],
         include: [{
           model: User,
-          attributes: [ 'firstName', 'image'],
+          attributes: [ 'id', 'firstName', 'image'],
           as: 'user'}]
       }
     ]
