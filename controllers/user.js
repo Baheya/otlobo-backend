@@ -5,6 +5,8 @@ const Group = require('../models/group');
 const Order = require('../models/order');
 const OrderItem = require('../models/order-item');
 
+const schedule = require('node-schedule');
+
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 exports.getRestaurants = (req, res, next) => {
@@ -63,7 +65,12 @@ exports.getRestaurant = (req, res, next) => {
         as: 'menu_items'
       },
       {
-        model: Group
+        model: Group,
+        where: {
+          active: true,
+          paid: true
+        },
+        required: false
       }
     ]
   })
@@ -85,7 +92,7 @@ exports.addMenuItem = (req, res, next) => {
   let groupId;
   let orderId;
 
-  Group.findOrCreate({ where: { restaurantId, userId } })
+  Group.findOrCreate({ where: { restaurantId, userId, active: true } })
     .then(group => {
       groupId = group[0].id;
       Order.findOrCreate({ where: { groupId, userId } })
@@ -128,7 +135,7 @@ exports.getOrder = (req, res, next) => {
   const restaurantId = req.query.restaurantId;
   let totalPrice = 0;
   Group.findOne({
-    where: { userId, restaurantId },
+    where: { userId, restaurantId, active: true },
     include: [
       {
         model: Restaurant
@@ -164,6 +171,41 @@ exports.getOrder = (req, res, next) => {
         .catch(err => {
           console.log(err);
         });
+    })
+    .catch(err => {
+      console.log(err);
+    });
+};
+
+exports.getOrders = (req, res, next) => {
+  const userId = req.query.userId;
+  const restaurantId = req.query.restaurantId;
+  let totalPrice = 0;
+  Group.findOne({
+    where: { userId, restaurantId, active: true, paid: true },
+    include: [
+      {
+        model: Restaurant
+      },
+      {
+        model: Order,
+        where: {
+          completed: true
+        },
+        include: [
+          {
+            model: MenuItem,
+            as: 'menu_items'
+          }
+        ]
+      }
+    ]
+  })
+    .then(group => {
+      res.status(200).json({
+        message: 'Cart fetched successfully.',
+        group
+      });
     })
     .catch(err => {
       console.log(err);
@@ -209,7 +251,33 @@ exports.handlePayment = async (req, res, next) => {
                   .update({
                     completed: true
                   })
+                  .then(order => {
+                    group.update({
+                      paid: true,
+                      timeframe: req.body.timeframe
+                    });
+                  })
                   .then(result => {
+                    let timeframeValue;
+                    if (req.body.timeframe === '15 minutes') {
+                      timeframeValue = 15;
+                    } else if (req.body.timeframe === '30 minutes') {
+                      timeframeValue = 30;
+                    } else if (req.body.timeframe === '45 minutes') {
+                      timeframeValue = 45;
+                    } else if (req.body.timeframe === '1 hour') {
+                      timeframeValue = 60;
+                    }
+                    let now = new Date();
+                    let groupTimeframe = new Date(
+                      now.getTime() + timeframeValue * 60000
+                    );
+                    let j = schedule.scheduleJob(groupTimeframe, function() {
+                      group.update({
+                        active: false
+                      });
+                      console.log('The world is going to end today.');
+                    });
                     if (
                       order.completed === true &&
                       user.email === req.body.token.email
