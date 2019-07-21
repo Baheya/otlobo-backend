@@ -25,4 +25,6 @@ router.post(
   userControllers.handlePayment
 );
 
+router.get('/activeGroups/:groupId', userControllers.getGroupDetails);
+
 module.exports = router;

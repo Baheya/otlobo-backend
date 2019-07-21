@@ -290,3 +290,50 @@ exports.handlePayment = async (req, res, next) => {
       console.log(`hello i am stripe catch block ${err}`);
     });
 };
+exports.getGroupDetails = (req, res, next) => {
+  const groupId = req.params.groupId;
+  Group.findOne({
+    where: {
+      id: groupId
+    }
+    ,
+    include: [
+      {
+        model: Restaurant,
+        as: 'restaurant',
+        attributes: ['id', 'name']
+      },
+      {
+        model: Order,
+        as: 'orders',
+        attributes: ['id'],
+        include: [{
+          model: User,
+          attributes: ['id', 'firstName', 'image'],
+          as: 'user'
+        }, {
+          model: MenuItem,
+          as: 'menu_items',
+          attributes: ['id', 'name', 'price', 'description', 'picture']
+        }]
+      }
+    ]
+  })
+    .then(group => {
+      if (!group) {
+        const error = new Error('Could not find group.');
+        error.statusCode = 404;
+        throw error;
+      }
+      res.status(200).json({
+        message: 'Group details fetched successfully.',
+        group: group
+      });
+    })
+    .catch(err => {
+      if (!err.statusCode) {
+        err.statusCode = 500;
+      }
+      next(err);
+    });
+}
