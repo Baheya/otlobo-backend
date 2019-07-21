@@ -4,9 +4,9 @@ const User = require('../models/user');
 const Group = require('../models/group');
 const Order = require('../models/order');
 const OrderItem = require('../models/order-item');
-
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
+//show all restaurants in the app
 exports.getRestaurants = (req, res, next) => {
   if (req.query.sortBy === 'name') {
     Restaurant.findAll({
@@ -50,7 +50,7 @@ exports.getRestaurants = (req, res, next) => {
       });
   }
 };
-
+// get single restaurant info
 exports.getRestaurant = (req, res, next) => {
   const restaurantId = req.params.restaurantId;
   Restaurant.findAll({
@@ -168,6 +168,57 @@ exports.getOrder = (req, res, next) => {
     .catch(err => {
       console.log(err);
     });
+};
+// get all active groups and their orders(the users who made those orders) and restaurant
+exports.getActiveGroups = (req,res,next) => {
+  Group.findAll({
+    where: {
+      active: true
+    },
+    include: [
+      {
+        model: Restaurant,
+        as: 'restaurant',
+        attributes: ['name']
+      },
+      {
+        model: Order,
+        as: 'orders',
+        attributes: ['id'],
+        include: [{
+          model: User,
+          attributes: [ 'id', 'firstName', 'image'],
+          as: 'user'}]
+      }
+    ]
+  })
+    .then(groups => {
+      if (!groups) {
+        const error = new Error('Could not find groups.');
+        error.statusCode = 404;
+        throw error;
+      }
+      console.log(groups)
+      res.status(200).json({
+        message: 'Groups fetched successfully.',
+        groups: groups
+      });
+    })
+    .catch(err => {
+      if (!err.statusCode) {
+        err.statusCode = 500;
+      }
+      next(err);
+    });
+}
+
+//payments handling
+const stripeChargeCallback = res => (stripeErr, stripeRes) => {
+  if (stripeErr) {
+    res.status(500).send({ error: stripeErr });
+  } else {
+    res.status(200).send({ success: stripeRes });
+  }
 };
 
 exports.handlePayment = async (req, res, next) => {

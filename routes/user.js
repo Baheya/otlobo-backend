@@ -18,6 +18,8 @@ router.get('/restaurant/:restaurantId/:menuItemId', userControllers.getOrder);
 
 router.get('/restaurant/:restaurantId/checkout', userControllers.getOrder);
 
+router.get('/activeGroups', userControllers.getActiveGroups);
+
 router.post(
   '/restaurant/:restaurantId/checkout/charge',
   userControllers.handlePayment

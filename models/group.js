@@ -8,6 +8,11 @@ const Group = sequelize.define('group', {
     autoIncrement: true,
     allowNull: false,
     primaryKey: true
+  },
+  active: {
+    type: Sequelize.BOOLEAN,
+    allowNull: false,
+    defaultValue: true
   }
 });
 

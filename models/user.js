@@ -30,6 +30,7 @@ const User = sequelize.define(
     },
     birthDate: Sequelize.DATEONLY,
     address: Sequelize.STRING,
+    image: Sequelize.STRING,
     admin: {
       type: Sequelize.BOOLEAN,
       allowNull: false,
