@@ -8,6 +8,16 @@ const Order = sequelize.define('order', {
     autoIncrement: true,
     allowNull: false,
     primaryKey: true
+  },
+  total: {
+    type: Sequelize.FLOAT,
+    allowNull: false,
+    defaultValue: 0
+  },
+  completed: {
+    type: Sequelize.BOOLEAN,
+    allowNull: false,
+    defaultValue: false
   }
 });
 

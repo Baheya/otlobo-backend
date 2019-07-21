@@ -1,15 +1,16 @@
 const Restaurant = require('../models/restaurant');
 const MenuItem = require('../models/menu-item');
+const User = require('../models/user');
 const Group = require('../models/group');
 const Order = require('../models/order');
-const User = require('../models/user');
 const OrderItem = require('../models/order-item');
+
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 exports.getRestaurants = (req, res, next) => {
   if (req.query.sortBy === 'name') {
     Restaurant.findAll({
-      order: [['name', 'ASC']],
-      limit: 2
+      order: [['name', 'ASC']]
     })
       .then(restaurants => {
         console.log(restaurants);
@@ -23,8 +24,7 @@ exports.getRestaurants = (req, res, next) => {
       });
   } else if (req.query.sortBy === 'newest') {
     Restaurant.findAll({
-      order: [['createdAt', 'DESC']],
-      limit: 2
+      order: [['createdAt', 'DESC']]
     })
       .then(restaurants => {
         console.log(restaurants);
@@ -37,7 +37,7 @@ exports.getRestaurants = (req, res, next) => {
         console.log(err);
       });
   } else {
-    Restaurant.findAll({ limit: 2 })
+    Restaurant.findAll()
       .then(restaurants => {
         console.log(restaurants);
         res.status(200).json({
@@ -118,9 +118,6 @@ exports.addMenuItem = (req, res, next) => {
           console.log(err);
         });
     })
-    .then(result => {
-      console.log(result);
-    })
     .catch(err => {
       console.log(err);
     });
@@ -128,38 +125,132 @@ exports.addMenuItem = (req, res, next) => {
 
 exports.getOrder = (req, res, next) => {
   const userId = req.query.userId;
-  const groupId = req.query.groupId;
-  Order.findOne({
-    where: { groupId, userId },
+  const restaurantId = req.query.restaurantId;
+  let totalPrice = 0;
+  Group.findOne({
+    where: { userId, restaurantId },
     include: [
       {
-        model: MenuItem,
-        as: 'menu_items'
+        model: Restaurant
       }
     ]
   })
-    .then(order => {
-        res.status(200).json({
-          message: 'Everything fetched successfully.',
-          order: order
-        });
+    .then(group => {
+      let groupId = group.id;
+      Order.findOne({
+        where: { groupId, userId },
+        include: [
+          {
+            model: MenuItem,
+            as: 'menu_items'
+          }
+        ]
       })
+        .then(order => {
+          order.menu_items.map(item => {
+            const { price, order_item } = item;
+            totalPrice = totalPrice + price * order_item.quantity;
+            order.update({
+              total: totalPrice
+            });
+          });
+          res.status(200).json({
+            message: 'Cart fetched successfully.',
+            order,
+            group,
+            totalPrice
+          });
+        })
+        .catch(err => {
+          console.log(err);
+        });
+    })
     .catch(err => {
       console.log(err);
     });
 };
 
+exports.handlePayment = async (req, res, next) => {
+  const body = {
+    source: req.body.token.id,
+    amount: req.body.amount,
+    currency: 'egp'
+  };
+  stripe.charges
+    .create(body)
+    .then(stripeResult => {
+      User.findOne({ where: { id: req.body.userId } }).then(user => {
+        Group.findOne({
+          where: {
+            userId: req.body.userId,
+            restaurantId: req.body.restaurantId
+          }
+        }).then(group => {
+          groupId = group.id;
+          Order.findOne({ where: { userId: req.body.userId, groupId } })
+            .then(order => {
+              if (user.email !== req.body.token.email) {
+                order
+                  .update({
+                    completed: false
+                  })
+                  .then(result => {
+                    res.status(422).json({
+                      message: 'Email incorrect, please try again.',
+                      result,
+                      completed: false
+                    });
+                  })
+                  .catch(err => {
+                    console.log(err);
+                  });
+              } else {
+                order
+                  .update({
+                    completed: true
+                  })
+                  .then(result => {
+                    if (
+                      order.completed === true &&
+                      user.email === req.body.token.email
+                    ) {
+                      res.status(200).json({
+                        message: 'Order placed successfully!',
+                        result,
+                        completed: true
+                      });
+                    } else {
+                      res.status(500).json({
+                        message: 'Payment details incorrect, please try again.',
+                        result,
+                        completed: false
+                      });
+                    }
+                  });
+              }
+            })
+            .catch(err => {
+              console.log(err);
+            });
+        });
+      });
+    })
+    .catch(err => {
+      console.log(`hello i am stripe catch block ${err}`);
+    });
+};
 exports.getGroupDetails = (req, res, next) => {
   const groupId = req.params.groupId;
-  Group.findAll({
+  Group.findOne({
     where: {
       id: groupId
-    },
+    }
+    ,
     include: [
       {
         model: Restaurant,
         as: 'restaurant',
-        attributes: ['name']
+        attributes: ['id', 'name']
       },
       {
         model: Order,
@@ -170,9 +261,10 @@ exports.getGroupDetails = (req, res, next) => {
           attributes: ['id', 'firstName', 'image'],
           as: 'user'
         }, {
-            model: MenuItem,
-            as: 'menu_items'
-          }]
+          model: MenuItem,
+          as: 'menu_items',
+          attributes: ['id', 'name', 'price', 'description', 'picture']
+        }]
       }
     ]
   })
@@ -182,7 +274,6 @@ exports.getGroupDetails = (req, res, next) => {
         error.statusCode = 404;
         throw error;
       }
-      console.log(group)
       res.status(200).json({
         message: 'Group details fetched successfully.',
         group: group
