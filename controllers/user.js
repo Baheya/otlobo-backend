@@ -4,6 +4,9 @@ const User = require('../models/user');
 const Group = require('../models/group');
 const Order = require('../models/order');
 const OrderItem = require('../models/order-item');
+
+const schedule = require('node-schedule');
+
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 //show all restaurants in the app
@@ -63,7 +66,12 @@ exports.getRestaurant = (req, res, next) => {
         as: 'menu_items'
       },
       {
-        model: Group
+        model: Group,
+        where: {
+          active: true,
+          paid: true
+        },
+        required: false
       }
     ]
   })
@@ -85,7 +93,7 @@ exports.addMenuItem = (req, res, next) => {
   let groupId;
   let orderId;
 
-  Group.findOrCreate({ where: { restaurantId, userId } })
+  Group.findOrCreate({ where: { restaurantId, userId, active: true } })
     .then(group => {
       groupId = group[0].id;
       Order.findOrCreate({ where: { groupId, userId } })
@@ -128,7 +136,7 @@ exports.getOrder = (req, res, next) => {
   const restaurantId = req.query.restaurantId;
   let totalPrice = 0;
   Group.findOne({
-    where: { userId, restaurantId },
+    where: { userId, restaurantId, active: true },
     include: [
       {
         model: Restaurant
@@ -170,7 +178,7 @@ exports.getOrder = (req, res, next) => {
     });
 };
 // get all active groups and their orders(the users who made those orders) and restaurant
-exports.getActiveGroups = (req,res,next) => {
+exports.getActiveGroups = (req, res, next) => {
   Group.findAll({
     where: {
       active: true
@@ -185,10 +193,13 @@ exports.getActiveGroups = (req,res,next) => {
         model: Order,
         as: 'orders',
         attributes: ['id'],
-        include: [{
-          model: User,
-          attributes: [ 'id', 'firstName', 'image'],
-          as: 'user'}]
+        include: [
+          {
+            model: User,
+            attributes: ['id', 'firstName', 'image'],
+            as: 'user'
+          }
+        ]
       }
     ]
   })
@@ -198,7 +209,7 @@ exports.getActiveGroups = (req,res,next) => {
         error.statusCode = 404;
         throw error;
       }
-      console.log(groups)
+      console.log(groups);
       res.status(200).json({
         message: 'Groups fetched successfully.',
         groups: groups
@@ -210,7 +221,7 @@ exports.getActiveGroups = (req,res,next) => {
       }
       next(err);
     });
-}
+};
 
 //payments handling
 const stripeChargeCallback = res => (stripeErr, stripeRes) => {
@@ -219,6 +230,41 @@ const stripeChargeCallback = res => (stripeErr, stripeRes) => {
   } else {
     res.status(200).send({ success: stripeRes });
   }
+};
+
+exports.getOrders = (req, res, next) => {
+  const userId = req.query.userId;
+  const restaurantId = req.query.restaurantId;
+  let totalPrice = 0;
+  Group.findOne({
+    where: { userId, restaurantId, active: true, paid: true },
+    include: [
+      {
+        model: Restaurant
+      },
+      {
+        model: Order,
+        where: {
+          completed: true
+        },
+        include: [
+          {
+            model: MenuItem,
+            as: 'menu_items'
+          }
+        ]
+      }
+    ]
+  })
+    .then(group => {
+      res.status(200).json({
+        message: 'Cart fetched successfully.',
+        group
+      });
+    })
+    .catch(err => {
+      console.log(err);
+    });
 };
 
 exports.handlePayment = async (req, res, next) => {
@@ -260,7 +306,33 @@ exports.handlePayment = async (req, res, next) => {
                   .update({
                     completed: true
                   })
+                  .then(order => {
+                    group.update({
+                      paid: true,
+                      timeframe: req.body.timeframe
+                    });
+                  })
                   .then(result => {
+                    let timeframeValue;
+                    if (req.body.timeframe === '15 minutes') {
+                      timeframeValue = 15;
+                    } else if (req.body.timeframe === '30 minutes') {
+                      timeframeValue = 30;
+                    } else if (req.body.timeframe === '45 minutes') {
+                      timeframeValue = 45;
+                    } else if (req.body.timeframe === '1 hour') {
+                      timeframeValue = 60;
+                    }
+                    let now = new Date();
+                    let groupTimeframe = new Date(
+                      now.getTime() + timeframeValue * 60000
+                    );
+                    let j = schedule.scheduleJob(groupTimeframe, function() {
+                      group.update({
+                        active: false
+                      });
+                      console.log('The world is going to end today.');
+                    });
                     if (
                       order.completed === true &&
                       user.email === req.body.token.email
@@ -295,8 +367,7 @@ exports.getGroupDetails = (req, res, next) => {
   Group.findOne({
     where: {
       id: groupId
-    }
-    ,
+    },
     include: [
       {
         model: Restaurant,
@@ -307,15 +378,18 @@ exports.getGroupDetails = (req, res, next) => {
         model: Order,
         as: 'orders',
         attributes: ['id'],
-        include: [{
-          model: User,
-          attributes: ['id', 'firstName', 'image'],
-          as: 'user'
-        }, {
-          model: MenuItem,
-          as: 'menu_items',
-          attributes: ['id', 'name', 'price', 'description', 'picture']
-        }]
+        include: [
+          {
+            model: User,
+            attributes: ['id', 'firstName', 'image'],
+            as: 'user'
+          },
+          {
+            model: MenuItem,
+            as: 'menu_items',
+            attributes: ['id', 'name', 'price', 'description', 'picture']
+          }
+        ]
       }
     ]
   })
@@ -336,4 +410,4 @@ exports.getGroupDetails = (req, res, next) => {
       }
       next(err);
     });
-}
+};

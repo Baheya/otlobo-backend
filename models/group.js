@@ -9,10 +9,17 @@ const Group = sequelize.define('group', {
     allowNull: false,
     primaryKey: true
   },
+  timeframe: {
+    type: Sequelize.ENUM('15 minutes', '30 minutes', '45 minutes', '1 hour'),
+    defaultValue: null
+  },
   active: {
     type: Sequelize.BOOLEAN,
-    allowNull: false,
     defaultValue: true
+  },
+  paid: {
+    type: Sequelize.BOOLEAN,
+    defaultValue: false
   }
 });
 
