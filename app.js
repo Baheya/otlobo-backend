@@ -24,7 +24,7 @@ const fileStorage = multer.diskStorage({
     cb(null,'images')
   },
   filename: (req, file, cb) => {
-    cb(null, new Date().toISOString + '-' + file.originalname)
+    cb(null, Date.now() + file.originalname)
   }
 });
 
@@ -38,7 +38,7 @@ const fileFilter = (req, file, cb) => {
 
 app.use(bodyParser.json());
 app.use(require('body-parser').text());
-app.use(multer({storage: fileStorage, fileFilter: fileFilter}).single('image'))
+app.use(multer({storage: fileStorage, fileFilter: fileFilter}).single('file'))
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/images', express.static(path.join(__dirname, 'images')));
 
