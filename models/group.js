@@ -10,8 +10,8 @@ const Group = sequelize.define('group', {
     primaryKey: true
   },
   timeframe: {
-    type: Sequelize.ENUM('15 minutes', '30 minutes', '45 minutes', '1 hour'),
-    defaultValue: null
+    type: Sequelize.ENUM('15 minutes', '30 minutes', '45 minutes', '60 minutes'),
+    defaultValue: '30 minutes'
   },
   active: {
     type: Sequelize.BOOLEAN,
