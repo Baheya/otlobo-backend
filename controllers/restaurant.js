@@ -6,9 +6,16 @@ exports.postMenuItem = (req, res, next) => {
     const name = req.body.name
     const description = req.body.description
     const price = req.body.price
-    const picture = req.body.picture
+    const picture = req.file
 
-    MenuItem.create({ name, description, price, picture, restaurantId})
+    const picturePath = '';
+    if(!picture){
+        picturePath = 'images/defaultFood.png'
+    } else {
+        picturePath = picture.path
+    }
+
+    MenuItem.create({ name, description, price, picture: picturePath, restaurantId})
         .then(menuItem => {
             res.status(201).json({
                 msg: "menuItem has been created",
