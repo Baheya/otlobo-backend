@@ -51,9 +51,19 @@ exports.postSignup = (req, res, next) => {
         });
       })
       .then(result => {
-        res
-          .status(201)
-          .json({ msg: "user has been created", userId: result.id });
+        const token = jwt.sign(
+          {
+            email: email,
+            userId: result.id
+          },
+          TOKENSECRET,
+          { expiresIn: "1h" }
+        );
+        res.status(201).json({ token: token, userId: result.id, userType: "user", user: result });
+
+        //res
+        //  .status(201)
+        //  .json({ msg: "user has been created", userId: result.id });
       })
       .catch(err => {
         console.log(err);
@@ -90,10 +100,22 @@ exports.postSignup = (req, res, next) => {
         });
       })
       .then(result => {
-        res.status(201).json({
-          msg: "restaurant has been created",
-          restaurantId: result.id
-        });
+        const token = jwt.sign(
+          {
+            email: email,
+            userId: result.id
+          },
+          TOKENSECRET,
+          { expiresIn: "1h" }
+        );
+
+        res.status(201).json({ token: token, userId: result.id, userType: "restaurant", restaurant: result });
+
+
+        // res.status(201).json({
+        //   msg: "restaurant has been created",
+        //   restaurantId: result.id
+        // });
       })
       .catch(err => {
         console.log(err);

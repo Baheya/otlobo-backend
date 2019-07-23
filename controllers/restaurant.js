@@ -7,8 +7,8 @@ exports.postMenuItem = (req, res, next) => {
     const description = req.body.description
     const price = req.body.price
     const picture = req.file
-
-    const picturePath = '';
+    
+    let picturePath = '';
     if(!picture){
         picturePath = 'images/defaultFood.png'
     } else {
