@@ -9,6 +9,8 @@ router.get('/restaurants', userControllers.getRestaurants);
 
 router.get('/restaurant/:restaurantId', userControllers.getRestaurant);
 
+// router.post('/restaurant/:restaurantId', userControllers.createActiveGroup);
+
 router.post(
   '/restaurant/:restaurantId/:menuItemId',
   userControllers.addMenuItem
