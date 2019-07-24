@@ -67,10 +67,6 @@ exports.getRestaurant = (req, res, next) => {
       },
       {
         model: Group,
-        where: {
-          active: true,
-          paid: true
-        },
         required: false
       }
     ]
@@ -97,87 +93,6 @@ exports.getRestaurant = (req, res, next) => {
 //     }
 //   );
 // };
-
-exports.addMenuItem = (req, res, next) => {
-  const menuItemId = req.params.menuItemId;
-  const restaurantId = req.params.restaurantId;
-  const userId = req.body.userId;
-  const groupFound = req.body.groupFound;
-  let groupId;
-  let orderId;
-
-  if (groupFound === false) {
-    Group.create({ where: { restaurantId, active: true, paid: false } }).then(
-      group => {
-        groupId = group.id;
-        Order.findOrCreate({ where: { groupId, userId } })
-          .then(order => {
-            orderId = order[0].id;
-            OrderItem.findOrCreate({
-              where: { menuItemId, orderId }
-            })
-              .spread((item, created) => {
-                if (created === false) {
-                  item
-                    .update({
-                      quantity: item.quantity + 1
-                    })
-                    .then(item => {
-                      res.status(200).json({
-                        message: 'Everything fetched successfully.',
-                        group: group[0],
-                        order: order[0],
-                        item: item
-                      });
-                    });
-                }
-              })
-              .catch(err => {
-                console.log(err);
-              });
-          })
-          .catch(err => {
-            console.log(err);
-          });
-      }
-    );
-  } else {
-    Group.findOne({ where: { restaurantId, active: true, paid: true } }).then(
-      group => {
-        groupId = group.id;
-        Order.findOrCreate({ where: { groupId, userId } })
-          .then(order => {
-            orderId = order[0].id;
-            OrderItem.findOrCreate({
-              where: { menuItemId, orderId }
-            })
-              .spread((item, created) => {
-                if (created === false) {
-                  item
-                    .update({
-                      quantity: item.quantity + 1
-                    })
-                    .then(item => {
-                      res.status(200).json({
-                        message: 'Everything fetched successfully.',
-                        group: group[0],
-                        order: order[0],
-                        item: item
-                      });
-                    });
-                }
-              })
-              .catch(err => {
-                console.log(err);
-              });
-          })
-          .catch(err => {
-            console.log(err);
-          });
-      }
-    );
-  }
-};
 
 exports.getOrder = (req, res, next) => {
   const userId = req.query.userId;
@@ -312,10 +227,19 @@ exports.getOrders = (req, res, next) => {
 };
 
 exports.handlePayment = async (req, res, next) => {
-  // calculating order total so it's not calculated from the frontend
-  const orderTotal = req.body.orderItems.reduce(
-    (a, b) => a.price * a.quantity + b.price * b.quantity
-  );
+  // calculating order total so it's not calculated from the frontend, if one item vs if array of items
+  let orderTotal;
+  const calculateTotal = a => {
+    if (req.body.orderItems.length === 1) {
+      orderTotal = a[0].price * a[0].quantity;
+    } else {
+      orderTotal = req.body.orderItems.reduce(
+        (a, b) => a.price * a.quantity + b.price * b.quantity
+      );
+    }
+  };
+  calculateTotal(req.body.orderItems);
+
   // replacing the amount sent from frontend in the body with the amount calculated from backend
   const body = {
     source: req.body.token.id,
@@ -344,20 +268,11 @@ exports.handlePayment = async (req, res, next) => {
                 OrderItem.create({ orderId, menuItemId: id, quantity }).then(
                   orderItem => {
                     if (user.email !== req.body.token.email) {
-                      order
-                        .update({
-                          completed: false
-                        })
-                        .then(result => {
-                          res.status(422).json({
-                            message: 'Email incorrect, please try again.',
-                            result,
-                            completed: false
-                          });
-                        })
-                        .catch(err => {
-                          console.log(err);
-                        });
+                      res.status(422).json({
+                        message: 'Email incorrect, please try again.',
+                        result,
+                        completed: false
+                      });
                     } else {
                       order
                         .update({
@@ -366,7 +281,6 @@ exports.handlePayment = async (req, res, next) => {
                         .then(order => {
                           if (group[1] === true) {
                             group[0].update({
-                              paid: true,
                               timeframe: req.body.timeframe
                             });
                           }
