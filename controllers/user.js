@@ -86,49 +86,97 @@ exports.getRestaurant = (req, res, next) => {
     });
 };
 
+// exports.createActiveGroup = (req, res, next) => {
+//   const restaurantId = req.body.restaurantId;
+//   Group.create({ where: { restaurantId, active: true, paid: false } }).then(
+//     group => {
+//       res.status(200).json({
+//         message: 'Active group created successfully.',
+//         group: group
+//       });
+//     }
+//   );
+// };
+
 exports.addMenuItem = (req, res, next) => {
-  const restaurantId = req.params.restaurantId;
   const menuItemId = req.params.menuItemId;
+  const restaurantId = req.params.restaurantId;
   const userId = req.body.userId;
+  const groupFound = req.body.groupFound;
   let groupId;
   let orderId;
 
-  Group.findOrCreate({ where: { restaurantId, userId, active: true } })
-    .then(group => {
-      groupId = group[0].id;
-      Order.findOrCreate({ where: { groupId, userId } })
-        .then(order => {
-          orderId = order[0].id;
-          OrderItem.findOrCreate({
-            where: { menuItemId, orderId }
-          })
-            .spread((item, created) => {
-              if (created === false) {
-                item
-                  .update({
-                    quantity: item.quantity + 1
-                  })
-                  .then(item => {
-                    res.status(200).json({
-                      message: 'Everything fetched successfully.',
-                      group: group[0],
-                      order: order[0],
-                      item: item
-                    });
-                  });
-              }
+  if (groupFound === false) {
+    Group.create({ where: { restaurantId, active: true, paid: false } }).then(
+      group => {
+        groupId = group.id;
+        Order.findOrCreate({ where: { groupId, userId } })
+          .then(order => {
+            orderId = order[0].id;
+            OrderItem.findOrCreate({
+              where: { menuItemId, orderId }
             })
-            .catch(err => {
-              console.log(err);
-            });
-        })
-        .catch(err => {
-          console.log(err);
-        });
-    })
-    .catch(err => {
-      console.log(err);
-    });
+              .spread((item, created) => {
+                if (created === false) {
+                  item
+                    .update({
+                      quantity: item.quantity + 1
+                    })
+                    .then(item => {
+                      res.status(200).json({
+                        message: 'Everything fetched successfully.',
+                        group: group[0],
+                        order: order[0],
+                        item: item
+                      });
+                    });
+                }
+              })
+              .catch(err => {
+                console.log(err);
+              });
+          })
+          .catch(err => {
+            console.log(err);
+          });
+      }
+    );
+  } else {
+    Group.findOne({ where: { restaurantId, active: true, paid: true } }).then(
+      group => {
+        groupId = group.id;
+        Order.findOrCreate({ where: { groupId, userId } })
+          .then(order => {
+            orderId = order[0].id;
+            OrderItem.findOrCreate({
+              where: { menuItemId, orderId }
+            })
+              .spread((item, created) => {
+                if (created === false) {
+                  item
+                    .update({
+                      quantity: item.quantity + 1
+                    })
+                    .then(item => {
+                      res.status(200).json({
+                        message: 'Everything fetched successfully.',
+                        group: group[0],
+                        order: order[0],
+                        item: item
+                      });
+                    });
+                }
+              })
+              .catch(err => {
+                console.log(err);
+              });
+          })
+          .catch(err => {
+            console.log(err);
+          });
+      }
+    );
+  }
 };
 
 exports.getOrder = (req, res, next) => {
@@ -237,7 +285,7 @@ exports.getOrders = (req, res, next) => {
   const restaurantId = req.query.restaurantId;
   let totalPrice = 0;
   Group.findOne({
-    where: { userId, restaurantId, active: true, paid: true },
+    where: { restaurantId, active: true, paid: true },
     include: [
       {
         model: Restaurant
@@ -273,84 +321,101 @@ exports.handlePayment = async (req, res, next) => {
     amount: req.body.amount,
     currency: 'egp'
   };
+  const restaurantId = req.body.restaurantId;
+  const userId = req.body.userId;
+
   stripe.charges
     .create(body)
     .then(stripeResult => {
-      User.findOne({ where: { id: req.body.userId } }).then(user => {
-        Group.findOne({
+      User.findOne({ where: { id: userId } }).then(user => {
+        Group.findOrCreate({
           where: {
-            userId: req.body.userId,
-            restaurantId: req.body.restaurantId
+            restaurantId,
+            active: true
           }
         }).then(group => {
-          groupId = group.id;
-          Order.findOne({ where: { userId: req.body.userId, groupId } })
+          groupId = group[0].id;
+          Order.create({ userId, groupId })
             .then(order => {
-              if (user.email !== req.body.token.email) {
-                order
-                  .update({
-                    completed: false
-                  })
-                  .then(result => {
-                    res.status(422).json({
-                      message: 'Email incorrect, please try again.',
-                      result,
-                      completed: false
-                    });
-                  })
-                  .catch(err => {
-                    console.log(err);
-                  });
-              } else {
-                order
-                  .update({
-                    completed: true
-                  })
-                  .then(order => {
-                    group.update({
-                      paid: true,
-                      timeframe: req.body.timeframe
-                    });
-                  })
-                  .then(result => {
-                    let timeframeValue;
-                    if (req.body.timeframe === '15 minutes') {
-                      timeframeValue = 15;
-                    } else if (req.body.timeframe === '30 minutes') {
-                      timeframeValue = 30;
-                    } else if (req.body.timeframe === '45 minutes') {
-                      timeframeValue = 45;
-                    } else if (req.body.timeframe === '1 hour') {
-                      timeframeValue = 60;
-                    }
-                    let now = new Date();
-                    let groupTimeframe = new Date(
-                      now.getTime() + timeframeValue * 60000
-                    );
-                    let j = schedule.scheduleJob(groupTimeframe, function() {
-                      group.update({
-                        active: false
-                      });
-                      console.log('The world is going to end today.');
-                    });
-                    if (
-                      order.completed === true &&
-                      user.email === req.body.token.email
-                    ) {
-                      res.status(200).json({
-                        message: 'Order placed successfully!',
-                        result,
-                        completed: true
-                      });
+              orderId = order.id;
+              req.body.orderItems.map(item => {
+                const { id, quantity } = item;
+                OrderItem.create({ orderId, menuItemId: id, quantity }).then(
+                  orderItem => {
+                    if (user.email !== req.body.token.email) {
+                      order
+                        .update({
+                          completed: false
+                        })
+                        .then(result => {
+                          res.status(422).json({
+                            message: 'Email incorrect, please try again.',
+                            result,
+                            completed: false
+                          });
+                        })
+                        .catch(err => {
+                          console.log(err);
+                        });
                     } else {
-                      res.status(500).json({
-                        message: 'Payment details incorrect, please try again.',
-                        result,
-                        completed: false
-                      });
+                      order
+                        .update({
+                          completed: true
+                        })
+                        .then(order => {
+                          if (group[1] === true) {
+                            group[0].update({
+                              paid: true,
+                              timeframe: req.body.timeframe
+                            });
+                          }
+                        })
+                        .then(result => {
+                          let timeframeValue;
+                          if (req.body.timeframe === '15 minutes') {
+                            timeframeValue = 15;
+                          } else if (req.body.timeframe === '30 minutes') {
+                            timeframeValue = 30;
+                          } else if (req.body.timeframe === '45 minutes') {
+                            timeframeValue = 45;
+                          } else if (req.body.timeframe === '60 minutes') {
+                            timeframeValue = 60;
+                          }
+                          let now = new Date();
+                          let groupTimeframe = new Date(
+                            now.getTime() + timeframeValue * 60000
+                          );
+                          let j = schedule.scheduleJob(
+                            groupTimeframe,
+                            function() {
+                              group[0].update({
+                                active: false
+                              });
+                              console.log('The world is going to end today.');
+                            }
+                          );
+                          if (
+                            order.completed === true &&
+                            user.email === req.body.token.email
+                          ) {
+                            res.status(200).json({
+                              message: 'Order placed successfully!',
+                              result,
+                              completed: true
+                            });
+                          } else {
+                            res.status(500).json({
+                              message:
+                                'Payment details incorrect, please try again.',
+                              result,
+                              completed: false
+                            });
+                          }
+                        });
                     }
-                  });
-              }
+                  }
+                );
+              });
             })
             .catch(err => {
               console.log(err);
