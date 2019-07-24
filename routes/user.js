@@ -11,13 +11,6 @@ router.get('/restaurant/:restaurantId', userControllers.getRestaurant);
 
 // router.post('/restaurant/:restaurantId', userControllers.createActiveGroup);
 
-router.post(
-  '/restaurant/:restaurantId/:menuItemId',
-  userControllers.addMenuItem
-);
-
-router.get('/restaurant/:restaurantId/:menuItemId', userControllers.getOrder);
-
 router.get(
   '/restaurant/:restaurantId/checkout/success',
   userControllers.getOrders
