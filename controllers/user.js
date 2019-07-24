@@ -281,20 +281,16 @@ const stripeChargeCallback = res => (stripeErr, stripeRes) => {
 };
 
 exports.getOrders = (req, res, next) => {
-  const userId = req.query.userId;
   const restaurantId = req.query.restaurantId;
-  let totalPrice = 0;
+
   Group.findOne({
-    where: { restaurantId, active: true, paid: true },
+    where: { restaurantId, active: true },
     include: [
       {
         model: Restaurant
       },
       {
         model: Order,
-        where: {
-          completed: true
-        },
         include: [
           {
             model: MenuItem,
@@ -316,14 +312,19 @@ exports.getOrders = (req, res, next) => {
 };
 
 exports.handlePayment = async (req, res, next) => {
+  // calculating order total so it's not calculated from the frontend
+  const orderTotal = req.body.orderItems.reduce(
+    (a, b) => a.price * a.quantity + b.price * b.quantity
+  );
+  // replacing the amount sent from frontend in the body with the amount calculated from backend
   const body = {
     source: req.body.token.id,
-    amount: req.body.amount,
-    currency: 'egp'
+    amount: orderTotal,
+    currency: 'usd'
   };
   const restaurantId = req.body.restaurantId;
   const userId = req.body.userId;
-
+  // creating payment charge and if successful group, order, and order items
   stripe.charges
     .create(body)
     .then(stripeResult => {
@@ -360,7 +361,7 @@ exports.handlePayment = async (req, res, next) => {
                     } else {
                       order
                         .update({
-                          completed: true
+                          total: orderTotal
                         })
                         .then(order => {
                           if (group[1] === true) {
@@ -394,10 +395,7 @@ exports.handlePayment = async (req, res, next) => {
                               console.log('The world is going to end today.');
                             }
                           );
-                          if (
-                            order.completed === true &&
-                            user.email === req.body.token.email
-                          ) {
+                          if (user.email === req.body.token.email) {
                             res.status(200).json({
                               message: 'Order placed successfully!',
                               result,
