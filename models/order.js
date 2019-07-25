@@ -10,14 +10,9 @@ const Order = sequelize.define('order', {
     primaryKey: true
   },
   total: {
-    type: Sequelize.FLOAT,
+    type: Sequelize.DECIMAL(10, 2),
     allowNull: false,
     defaultValue: 0
-  },
-  completed: {
-    type: Sequelize.BOOLEAN,
-    allowNull: false,
-    defaultValue: false
   }
 });
 

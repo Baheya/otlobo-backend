@@ -71,8 +71,8 @@ Group.belongsTo(Restaurant, { constraints: true, onDelete: 'CASCADE' });
 Group.hasMany(Order);
 Order.belongsTo(Group, { constraints: true, onDelete: 'CASCADE' });
 //relations btw user and group from creation side
-Group.belongsTo(User);
-User.hasMany(Group);
+// Group.belongsTo(User);
+// User.hasMany(Group);
 //relation btw order and user
 Order.belongsTo(User, { constraints: true, onDelete: 'CASCADE' });
 User.hasMany(Order);

@@ -16,10 +16,6 @@ const Group = sequelize.define('group', {
   active: {
     type: Sequelize.BOOLEAN,
     defaultValue: true
-  },
-  paid: {
-    type: Sequelize.BOOLEAN,
-    defaultValue: false
   }
 });
 

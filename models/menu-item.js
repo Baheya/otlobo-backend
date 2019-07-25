@@ -11,7 +11,7 @@ const MenuItem = sequelize.define('menu-item', {
   },
   name: Sequelize.STRING,
   description: Sequelize.STRING,
-  price: Sequelize.INTEGER,
+  price: Sequelize.DECIMAL(10, 2),
   picture: Sequelize.STRING
 });
 
