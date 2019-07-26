@@ -16,6 +16,10 @@ const Group = sequelize.define('group', {
   active: {
     type: Sequelize.BOOLEAN,
     defaultValue: true
+  },
+  status: {
+    type: Sequelize.ENUM('opened', 'parpering', 'closed'),
+    defaultValue: 'opened'
   }
 });
 
