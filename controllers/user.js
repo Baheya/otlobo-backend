@@ -67,6 +67,7 @@ exports.getRestaurant = (req, res, next) => {
       },
       {
         model: Group,
+        where: { active: true},
         required: false
       }
     ]
@@ -270,7 +271,7 @@ exports.handlePayment = async (req, res, next) => {
                     if (user.email !== req.body.token.email) {
                       res.status(422).json({
                         message: 'Email incorrect, please try again.',
-                        result,
+                        //result,
                         completed: false
                       });
                     } else {
@@ -280,22 +281,30 @@ exports.handlePayment = async (req, res, next) => {
                         })
                         .then(order => {
                           if (group[1] === true) {
+                            const timeframe = req.body.timeframe ? req.body.timeframe : '15 minutes';
                             group[0].update({
-                              timeframe: req.body.timeframe
+                              timeframe
                             });
                           }
                         })
                         .then(result => {
                           let timeframeValue;
-                          if (req.body.timeframe === '15 minutes') {
+                          if(req.body.timeframe) {
+                            if (req.body.timeframe === '02 minutes') {
+                              timeframeValue = 2;
+                            } else if (req.body.timeframe === '15 minutes') {
+                              timeframeValue = 15;
+                            } else if (req.body.timeframe === '30 minutes') {
+                              timeframeValue = 30;
+                            } else if (req.body.timeframe === '45 minutes') {
+                              timeframeValue = 45;
+                            } else if (req.body.timeframe === '60 minutes') {
+                              timeframeValue = 60;
+                            }
+                          } else {
                             timeframeValue = 15;
-                          } else if (req.body.timeframe === '30 minutes') {
-                            timeframeValue = 30;
-                          } else if (req.body.timeframe === '45 minutes') {
-                            timeframeValue = 45;
-                          } else if (req.body.timeframe === '60 minutes') {
-                            timeframeValue = 60;
                           }
+                          
                           let now = new Date();
                           let groupTimeframe = new Date(
                             now.getTime() + timeframeValue * 60000
@@ -307,6 +316,7 @@ exports.handlePayment = async (req, res, next) => {
                                 active: false
                               });
                               console.log('The world is going to end today.');
+                              j.cancel();
                             }
                           );
                           if (user.email === req.body.token.email) {
