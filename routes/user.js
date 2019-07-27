@@ -19,6 +19,8 @@ router.get(
   userControllers.getOrders
 );
 
+router.get('/activeGroups/:groupId', userControllers.getGroupDetails);
+
 router.get('/activeGroups', userControllers.getActiveGroups);
 
 router.post(
@@ -28,6 +30,5 @@ router.post(
 
 router.get('/restaurant/:restaurantId/checkout', userControllers.getOrder);
 
-router.get('/activeGroups/:groupId', userControllers.getGroupDetails);
 
 module.exports = router;
