@@ -10,6 +10,8 @@ const sequelize = require('./util/database');
 const userRoutes = require('./routes/user');
 const authRoutes = require('./routes/auth');
 const restaurantRoutes = require('./routes/restaurant');
+const adminRoutes = require('./routes/admin');
+
 const Restaurant = require('./models/restaurant');
 const MenuItem = require('./models/menu-item');
 const User = require('./models/user');
@@ -55,6 +57,7 @@ app.use((req, res, next) => {
 app.use(authRoutes);
 app.use(userRoutes);
 app.use(restaurantRoutes);
+app.use('admin', adminRoutes);
 
 app.use((error, req, res, next) => {
   console.log(error);
@@ -70,9 +73,6 @@ Group.belongsTo(Restaurant, { constraints: true, onDelete: 'CASCADE' });
 //relations btw order and group
 Group.hasMany(Order);
 Order.belongsTo(Group, { constraints: true, onDelete: 'CASCADE' });
-//relations btw user and group from creation side
-// Group.belongsTo(User);
-// User.hasMany(Group);
 //relation btw order and user
 Order.belongsTo(User, { constraints: true, onDelete: 'CASCADE' });
 User.hasMany(Order);
