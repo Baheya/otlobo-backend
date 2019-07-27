@@ -271,7 +271,7 @@ exports.handlePayment = async (req, res, next) => {
                     if (user.email !== req.body.token.email) {
                       res.status(422).json({
                         message: 'Email incorrect, please try again.',
-                        //result,
+                        result,
                         completed: false
                       });
                     } else {
@@ -315,8 +315,8 @@ exports.handlePayment = async (req, res, next) => {
                               group[0].update({
                                 active: false
                               });
-                              console.log('The world is going to end today.');
-                              j.cancel();
+                              console.log('The world is going to end today.//////////////////////////////////////');
+                              // j.cancel();
                             }
                           );
                           if (user.email === req.body.token.email) {
