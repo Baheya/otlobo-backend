@@ -1,11 +1,14 @@
 const express = require('express');
 
 const userControllers = require('../controllers/user');
-const isAuth = require('../middleware/is-auth');
+const isAuthenticated = require('../middleware/is-auth');
+
 
 const router = express.Router();
 
-router.get('/restaurants', userControllers.getRestaurants);
+
+
+router.get('/restaurants', isAuthenticated, userControllers.getRestaurants);
 
 router.get('/restaurant/:restaurantId', userControllers.getRestaurant);
 

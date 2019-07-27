@@ -6,6 +6,10 @@ const Restaurant = require("../models/restaurant");
 const User = require("../models/user");
 const { TOKENSECRET } = process.env;
 
+exports.tokenValidation = (req, res, next) => {
+  res.status(200).json({msg: "valid"})
+}
+
 exports.postSignup = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
