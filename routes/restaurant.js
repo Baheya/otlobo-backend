@@ -7,6 +7,6 @@ const router = express.Router();
 
 router.post('/menuItems/:restaurantId/add', restaurantControllers.postMenuItem); 
 
-router.get('/allOrders/:restaurandId', restaurantControllers.getAllOrders); 
+router.get('/allOrders/:restaurantId', restaurantControllers.getAllOrders); 
 
 module.exports = router;

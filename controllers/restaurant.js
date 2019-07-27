@@ -41,11 +41,6 @@ exports.getAllOrders = (req, res, next) => {
         },
         include: [
             {
-                model: Restaurant,
-                as: 'restaurant',
-                attributes: ['id', 'name']
-            },
-            {
                 model: Order,
                 as: 'orders',
                 attributes: ['id'],
@@ -64,15 +59,15 @@ exports.getAllOrders = (req, res, next) => {
             }
         ]
     })
-        .then(group => {
-            if (!group) {
+        .then(groups => {
+            if (!groups) {
                 const error = new Error('Could not find orders for this restaurant.');
                 error.statusCode = 404;
                 throw error;
             }
             res.status(200).json({
                 message: 'orders fetched successfully.',
-                group: group
+                groups: groups
             });
         })
         .catch(err => {

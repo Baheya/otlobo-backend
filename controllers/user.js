@@ -145,7 +145,7 @@ exports.getOrder = (req, res, next) => {
 exports.getActiveGroups = (req, res, next) => {
   Group.findAll({
     where: {
-      active: false
+      active: true
     },
     include: [
       {

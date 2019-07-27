@@ -18,8 +18,8 @@ const Group = sequelize.define('group', {
     defaultValue: true
   },
   status: {
-    type: Sequelize.ENUM('opened', 'parpering', 'closed'),
-    defaultValue: 'opened'
+    type: Sequelize.ENUM('pending','opened', 'parpering', 'closed'),
+    defaultValue: 'pending'
   }
 });
 
