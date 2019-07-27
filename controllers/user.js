@@ -398,3 +398,46 @@ exports.getGroupDetails = (req, res, next) => {
       next(err);
     });
 };
+
+exports.getUserOrders = (req, res, next) => {
+  const userId = req.params.userId;
+  Order.findAll({
+    where: {
+      userId
+    },
+    include: [
+      {
+        model: Group,
+        attributes: ['status'],
+        as: 'group'
+      },
+      {
+        model: User,
+        attributes: ['id', 'firstName', 'image'],
+        as: 'user'
+      },
+      {
+        model: MenuItem,
+        as: 'menu_items',
+        attributes: ['id', 'name', 'price', 'description', 'picture']
+      }
+    ]
+  })
+  .then(orders => {
+    if (!orders) {
+      const error = new Error('Could not find orders for this user.');
+      error.statusCode = 404;
+      throw error;
+    }
+    res.status(200).json({
+      message: 'orders details fetched successfully.',
+      orders
+    });
+  })
+    .catch(err => {
+      if (!err.statusCode) {
+        err.statusCode = 500;
+      }
+      next(err);
+    });
+}

@@ -23,6 +23,8 @@ router.get('/activeGroups/:groupId', userControllers.getGroupDetails);
 
 router.get('/activeGroups', userControllers.getActiveGroups);
 
+router.get('/userOrders/:userId', userControllers.getUserOrders);
+
 router.post(
   '/restaurant/:restaurantId/checkout/charge',
   userControllers.handlePayment
