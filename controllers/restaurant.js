@@ -107,3 +107,34 @@ exports.getAllOrders = (req, res, next) => {
             next(err);
         });
 }
+exports.updateStatus = (req,res,next) => {
+    const orderStatus = req.body.orderStatus;
+    const groupId = req.body.groupId;
+    Group.findOne({
+        where: {
+            id: groupId
+        }
+    })
+    .then(group => {
+        if(!group){
+            const error = new Error('Could not find the group of this order');
+            error.statusCode = 404;
+            throw error;
+        }
+        group.update({
+            status: orderStatus
+        });
+    })
+    .then(result => {
+        res.status(202).json({
+            message: 'Order status updated successfully!',
+            result
+        });
+    })
+    .catch(err => {
+        if (!err.statusCode) {
+            err.statusCode = 500;
+        }
+        next(err);
+    });
+}

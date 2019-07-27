@@ -313,7 +313,8 @@ exports.handlePayment = async (req, res, next) => {
                             groupTimeframe,
                             function() {
                               group[0].update({
-                                active: false
+                                active: false,
+                                status: "opened"
                               });
                               console.log('The world is going to end today.//////////////////////////////////////');
                               // j.cancel();

@@ -8,7 +8,7 @@ const router = express.Router();
 
 
 
-router.get('/restaurants', isAuthenticated, userControllers.getRestaurants);
+router.get('/restaurants',  userControllers.getRestaurants);
 
 router.get('/restaurant/:restaurantId', userControllers.getRestaurant);
 
