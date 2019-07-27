@@ -1,5 +1,6 @@
 const Restaurant = require('../models/restaurant');
 const MenuItem = require('../models/menu-item');
+const Group = require('../models/group');
 
 exports.postMenuItem = (req, res, next) => {
     const restaurantId = req.params.restaurantId;
@@ -29,3 +30,34 @@ exports.postMenuItem = (req, res, next) => {
             next(err);
         })
 }
+
+
+// get single restaurant info
+exports.getMenu = (req, res, next) => {
+    const restaurantId = req.userId;
+    Restaurant.findAll({
+        where: {
+            id: restaurantId
+        },
+        include: [
+            {
+                model: MenuItem,
+                as: 'menu_items'
+            },
+            {
+                model: Group,
+                where: { active: true },
+                required: false
+            }
+        ]
+    })
+        .then(restaurant => {
+            res.status(200).json({
+                message: 'Restaurant fetched successfully.',
+                restaurant: restaurant
+            });
+        })
+        .catch(err => {
+            console.log(err);
+        });
+};

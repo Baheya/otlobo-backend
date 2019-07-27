@@ -56,28 +56,28 @@ exports.getRestaurants = (req, res, next) => {
 // get single restaurant info
 exports.getRestaurant = (req, res, next) => {
   const restaurantId = req.params.restaurantId;
-  Restaurant.findAll({
-    where: {
-      id: restaurantId
-    },
-    include: [
-      {
-        model: MenuItem,
-        as: 'menu_items'
+Restaurant.findAll({
+      where: {
+        id: restaurantId
       },
-      {
-        model: Group,
-        where: { active: true},
-        required: false
-      }
-    ]
-  })
-    .then(restaurant => {
-      res.status(200).json({
-        message: 'Restaurant fetched successfully.',
-        restaurant: restaurant
-      });
+      include: [
+        {
+          model: MenuItem,
+          as: 'menu_items'
+        },
+        {
+          model: Group,
+          where: { active: true },
+          required: false
+        }
+      ]
     })
+      .then(restaurant => {
+        res.status(200).json({
+          message: 'Restaurant fetched successfully.',
+          restaurant: restaurant
+        });
+      })
     .catch(err => {
       console.log(err);
     });

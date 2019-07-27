@@ -3,8 +3,11 @@ const { body } = require("express-validator/check")
 
 const authControllers = require("../controllers/auth");
 const User = require('../models/user');
+const isAuthenticated = require('../middleware/is-auth');
 
 const router = express.Router();
+
+router.get('/tokenValidation', isAuthenticated, authControllers.tokenValidation);
 
 router.post('/signup', [
     body('email')
