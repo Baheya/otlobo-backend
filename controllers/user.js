@@ -401,7 +401,7 @@ exports.getGroupDetails = (req, res, next) => {
 };
 
 exports.getUserOrders = (req, res, next) => {
-  const userId = req.params.userId;
+  const userId = req.userId;
   Order.findAll({
     where: {
       userId
@@ -422,7 +422,10 @@ exports.getUserOrders = (req, res, next) => {
         as: 'menu_items',
         attributes: ['id', 'name', 'price', 'description', 'picture']
       }
-    ]
+    ],
+    order: [
+            ['createdAt', 'DESC']
+        ]
   })
   .then(orders => {
     if (!orders) {

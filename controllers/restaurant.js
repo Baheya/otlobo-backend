@@ -5,7 +5,7 @@ const Group = require('../models/group');
 const User = require('../models/user')
 
 exports.postMenuItem = (req, res, next) => {
-    const restaurantId = req.params.restaurantId;
+    const restaurantId = req.userId;
     const name = req.body.name
     const description = req.body.description
     const price = req.body.price
@@ -64,7 +64,7 @@ exports.getMenu = (req, res, next) => {
         });
 };
 exports.getAllOrders = (req, res, next) => {
-    const restaurantId = req.params.restaurantId;
+    const restaurantId = req.userId;
     Group.findAll({
         where: {
             restaurantId
