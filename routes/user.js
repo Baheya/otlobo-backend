@@ -10,7 +10,7 @@ const router = express.Router();
 
 router.get('/restaurants',  userControllers.getRestaurants);
 
-router.get('/restaurant/:restaurantId', userControllers.getRestaurant);
+router.get('/restaurant/:restaurantId', isAuthenticated, userControllers.getRestaurant);
 
 // router.post('/restaurant/:restaurantId', userControllers.createActiveGroup);
 
@@ -19,9 +19,9 @@ router.get(
   userControllers.getOrders
 );
 
-router.get('/activeGroups/:groupId', userControllers.getGroupDetails);
+router.get('/activeGroups/:groupId', isAuthenticated, userControllers.getGroupDetails);
 
-router.get('/activeGroups', userControllers.getActiveGroups);
+router.get('/activeGroups', isAuthenticated, userControllers.getActiveGroups);
 
 router.get('/userOrders/:userId', userControllers.getUserOrders);
 
