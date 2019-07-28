@@ -87,7 +87,10 @@ exports.getAllOrders = (req, res, next) => {
                     }
                 ]
             }
-        ]
+        ],
+        order: [
+            ['createdAt', 'DESC']
+        ],
     })
         .then(groups => {
             if (!groups) {
