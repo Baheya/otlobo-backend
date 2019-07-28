@@ -8,7 +8,7 @@ const router = express.Router();
 
 
 
-router.get('/restaurants', isAuthenticated, userControllers.getRestaurants);
+router.get('/restaurants',  userControllers.getRestaurants);
 
 router.get('/restaurant/:restaurantId', isAuthenticated, userControllers.getRestaurant);
 
@@ -22,6 +22,8 @@ router.get(
 router.get('/activeGroups/:groupId', isAuthenticated, userControllers.getGroupDetails);
 
 router.get('/activeGroups', isAuthenticated, userControllers.getActiveGroups);
+
+router.get('/userOrders/:userId', isAuthenticated, userControllers.getUserOrders);
 
 router.post(
   '/restaurant/:restaurantId/checkout/charge',

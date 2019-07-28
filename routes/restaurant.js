@@ -11,4 +11,6 @@ router.post('/menuItems/:restaurantId/add', isAuthenticated, restaurantControlle
 router.get('/menu', isAuthenticated, restaurantControllers.getMenu);
 router.get('/allOrders/:restaurantId', isAuthenticated, restaurantControllers.getAllOrders); 
 
+router.patch('/updateStatus', isAuthenticated, restaurantControllers.updateStatus); 
+
 module.exports = router;
