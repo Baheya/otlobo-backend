@@ -23,7 +23,7 @@ router.get('/activeGroups/:groupId', isAuthenticated, userControllers.getGroupDe
 
 router.get('/activeGroups', isAuthenticated, userControllers.getActiveGroups);
 
-router.get('/userOrders/:userId', userControllers.getUserOrders);
+router.get('/userOrders/:userId', isAuthenticated, userControllers.getUserOrders);
 
 router.post(
   '/restaurant/:restaurantId/checkout/charge',
