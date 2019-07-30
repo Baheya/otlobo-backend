@@ -29,6 +29,10 @@ const Restaurant = sequelize.define(
       type: Sequelize.STRING,
       allowNull: false,
       defaultValue: "all"
+    },
+    image: {
+      type: Sequelize.STRING,
+      defaultValue: "images/defaultRestaurant.png"
     }
   },
   {
