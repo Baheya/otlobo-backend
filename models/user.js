@@ -30,7 +30,10 @@ const User = sequelize.define(
     },
     birthDate: Sequelize.DATEONLY,
     address: Sequelize.STRING,
-    image: Sequelize.STRING,
+    image: {
+      type: Sequelize.STRING,
+      defaultValue: "images/defaultUser.jpg"
+    },
     admin: {
       type: Sequelize.BOOLEAN,
       allowNull: false,
