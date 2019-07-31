@@ -3,7 +3,7 @@ const path = require('path');
 const dotenv = require('dotenv');
 dotenv.config();
 const bodyParser = require('body-parser');
-const multer = require('multer')
+const multer = require('multer');
 const express = require('express');
 const sequelize = require('./util/database');
 
@@ -22,25 +22,31 @@ const OrderItem = require('./models/order-item');
 const app = express();
 
 const fileStorage = multer.diskStorage({
-  destination: (req,file,cb)=>{
-    cb(null,'images')
+  destination: (req, file, cb) => {
+    cb(null, 'images');
   },
   filename: (req, file, cb) => {
-    cb(null, Date.now() + file.originalname)
+    cb(null, Date.now() + file.originalname);
   }
 });
 
 const fileFilter = (req, file, cb) => {
-  if (file.mimetype === 'image/png' || file.mimetype === 'image/jpg' || file.mimetype === 'image/jpeg'){
-    cb(null, true)
-  } else{
-    cb(null, false)
+  if (
+    file.mimetype === 'image/png' ||
+    file.mimetype === 'image/jpg' ||
+    file.mimetype === 'image/jpeg'
+  ) {
+    cb(null, true);
+  } else {
+    cb(null, false);
   }
-}
+};
 
 app.use(bodyParser.json());
 app.use(require('body-parser').text());
-app.use(multer({storage: fileStorage, fileFilter: fileFilter}).single('file'))
+app.use(
+  multer({ storage: fileStorage, fileFilter: fileFilter }).single('file')
+);
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/images', express.static(path.join(__dirname, 'images')));
 
