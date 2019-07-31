@@ -56,28 +56,28 @@ exports.getRestaurants = (req, res, next) => {
 // get single restaurant info
 exports.getRestaurant = (req, res, next) => {
   const restaurantId = req.params.restaurantId;
-Restaurant.findAll({
-      where: {
-        id: restaurantId
+  Restaurant.findAll({
+    where: {
+      id: restaurantId
+    },
+    include: [
+      {
+        model: MenuItem,
+        as: 'menu_items'
       },
-      include: [
-        {
-          model: MenuItem,
-          as: 'menu_items'
-        },
-        {
-          model: Group,
-          where: { active: true },
-          required: false
-        }
-      ]
+      {
+        model: Group,
+        where: { active: true },
+        required: false
+      }
+    ]
+  })
+    .then(restaurant => {
+      res.status(200).json({
+        message: 'Restaurant fetched successfully.',
+        restaurant: restaurant
+      });
     })
-      .then(restaurant => {
-        res.status(200).json({
-          message: 'Restaurant fetched successfully.',
-          restaurant: restaurant
-        });
-      })
     .catch(err => {
       console.log(err);
     });
@@ -230,16 +230,37 @@ exports.getOrders = (req, res, next) => {
 exports.handlePayment = async (req, res, next) => {
   // calculating order total so it's not calculated from the frontend, if one item vs if array of items
   let orderTotal;
-  const calculateTotal = a => {
-    if (req.body.orderItems.length === 1) {
+  let calculateTotal;
+
+  if (req.body.orderItems.length === 1) {
+    calculateTotal = a => {
       orderTotal = a[0].price * a[0].quantity;
-    } else {
-      orderTotal = req.body.orderItems.reduce(
-        (a, b) => a.price * a.quantity + b.price * b.quantity
-      );
-    }
-  };
+    };
+  } else {
+    calculateTotal = a => {
+      orderTotal = a.reduce(function(b, c) {
+        console.log(
+          `------------------------- ${b} and price ${c.price} and quantity ${
+            c.quantity
+          }`
+        );
+        return b + c.price * c.quantity;
+      }, 0);
+      console.log(orderTotal);
+    };
+  }
+  // const calculateTotal = (a, b) => {
+  //   if (req.body.orderItems.length === 1) {
+  //     orderTotal = a[0].price * a[0].quantity;
+  //   } else {
+  //     orderTotal = req.body.orderItems.reduce((a, b) => {
+  //       a.price + b.price * b.quantity, 0;
+  //       console.log('==============================' + a.price + ' ' + b.price);
+  //     });
+  //   }
+  // };
   calculateTotal(req.body.orderItems);
+  console.log(orderTotal);
 
   // replacing the amount sent from frontend in the body with the amount calculated from backend
   const body = {
@@ -281,7 +302,9 @@ exports.handlePayment = async (req, res, next) => {
                         })
                         .then(order => {
                           if (group[1] === true) {
-                            const timeframe = req.body.timeframe ? req.body.timeframe : '15 minutes';
+                            const timeframe = req.body.timeframe
+                              ? req.body.timeframe
+                              : '15 minutes';
                             group[0].update({
                               timeframe
                             });
@@ -289,7 +312,7 @@ exports.handlePayment = async (req, res, next) => {
                         })
                         .then(result => {
                           let timeframeValue;
-                          if(req.body.timeframe) {
+                          if (req.body.timeframe) {
                             if (req.body.timeframe === '02 minutes') {
                               timeframeValue = 2;
                             } else if (req.body.timeframe === '15 minutes') {
@@ -304,7 +327,7 @@ exports.handlePayment = async (req, res, next) => {
                           } else {
                             timeframeValue = 15;
                           }
-                          
+
                           let now = new Date();
                           let groupTimeframe = new Date(
                             now.getTime() + timeframeValue * 60000
@@ -314,9 +337,11 @@ exports.handlePayment = async (req, res, next) => {
                             function() {
                               group[0].update({
                                 active: false,
-                                status: "opened"
+                                status: 'opened'
                               });
-                              console.log('The world is going to end today.//////////////////////////////////////');
+                              console.log(
+                                'The world is going to end today.//////////////////////////////////////'
+                              );
                               // j.cancel();
                             }
                           );
@@ -410,7 +435,13 @@ exports.getUserOrders = (req, res, next) => {
       {
         model: Group,
         attributes: ['status'],
-        as: 'group'
+        as: 'group',
+        include: [
+          {
+            model: Restaurant,
+            attributes: ['name']
+          }
+        ]
       },
       {
         model: User,
@@ -423,25 +454,23 @@ exports.getUserOrders = (req, res, next) => {
         attributes: ['id', 'name', 'price', 'description', 'picture']
       }
     ],
-    order: [
-            ['createdAt', 'DESC']
-        ]
+    order: [['createdAt', 'DESC']]
   })
-  .then(orders => {
-    if (!orders) {
-      const error = new Error('Could not find orders for this user.');
-      error.statusCode = 404;
-      throw error;
-    }
-    res.status(200).json({
-      message: 'orders details fetched successfully.',
-      orders
-    });
-  })
+    .then(orders => {
+      if (!orders) {
+        const error = new Error('Could not find orders for this user.');
+        error.statusCode = 404;
+        throw error;
+      }
+      res.status(200).json({
+        message: 'orders details fetched successfully.',
+        orders
+      });
+    })
     .catch(err => {
       if (!err.statusCode) {
         err.statusCode = 500;
       }
       next(err);
     });
-}
+};
